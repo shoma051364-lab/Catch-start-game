@@ -74,6 +74,7 @@
             background: rgba(0,0,0,0.3);
             backdrop-filter: blur(5px);
             touch-action: none;
+            cursor: crosshair;
         }
         
         #gameField::before {
@@ -97,7 +98,7 @@
             pointer-events: none;
             width: 50px;
             height: 50px;
-            transition: all 0.05s linear;
+            transition: none;
         }
         
         #ship .ship-body {
@@ -151,86 +152,134 @@
             100% { transform: translateY(-200px); opacity: 0; }
         }
         
-        /* ==================== РЕАЛИСТИЧНЫЕ КОМЕТЫ ==================== */
+        /* ==================== РЕАЛИСТИЧНЫЕ КОМЕТЫ-КАМНИ ==================== */
         .comet {
             position: absolute;
             z-index: 5;
             pointer-events: none;
-            width: 60px;
-            height: 60px;
-            animation: cometFallDown linear forwards;
+            width: 50px;
+            height: 50px;
+            animation: cometFall linear forwards;
+            will-change: transform;
         }
         
-        .comet .comet-core {
+        .comet .comet-rock {
             position: absolute;
             width: 100%;
             height: 100%;
-            border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, #fff, #ff8800, #ff4400, #880000);
+            border-radius: 45% 55% 50% 50% / 55% 45% 55% 45%;
+            background: 
+                radial-gradient(circle at 30% 30%, #8b7355, #4a3728 40%, #2c1810 70%, #1a0f08);
             box-shadow: 
-                0 0 20px rgba(255,100,0,0.8),
-                0 0 40px rgba(255,50,0,0.4),
-                inset -5px -5px 15px rgba(0,0,0,0.5);
-            animation: corePulse 0.5s ease-in-out infinite alternate;
+                inset -8px -8px 15px rgba(0,0,0,0.6),
+                inset 5px 5px 10px rgba(255,255,255,0.1),
+                0 0 20px rgba(139,115,85,0.3);
+            animation: rockRotate 3s linear infinite;
         }
         
-        .comet .comet-tail {
+        .comet .comet-rock::before {
+            content: '';
+            position: absolute;
+            top: 15%;
+            left: 20%;
+            width: 30%;
+            height: 20%;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            transform: rotate(-30deg);
+        }
+        
+        .comet .comet-rock::after {
+            content: '';
+            position: absolute;
+            bottom: 20%;
+            right: 15%;
+            width: 20%;
+            height: 15%;
+            background: rgba(0,0,0,0.3);
+            border-radius: 50%;
+        }
+        
+        .comet .comet-trail {
             position: absolute;
             top: 50%;
-            right: -50px;
-            width: 50px;
-            height: 20px;
-            background: linear-gradient(to left, rgba(255,200,100,0.9), rgba(255,100,0,0.5), transparent);
+            right: -60px;
+            width: 60px;
+            height: 30px;
+            background: linear-gradient(to left, 
+                rgba(255,150,50,0.8),
+                rgba(255,100,0,0.4),
+                rgba(255,50,0,0.2),
+                transparent);
             border-radius: 50%;
             transform: translateY(-50%);
-            filter: blur(5px);
-            animation: tailFlicker 0.3s ease-in-out infinite alternate;
+            filter: blur(8px);
+            animation: trailFlicker 0.3s ease-in-out infinite alternate;
         }
         
-        .comet.golden .comet-core {
-            background: radial-gradient(circle at 30% 30%, #fff, #ffd700, #ff8800, #884400);
-            box-shadow: 
-                0 0 30px rgba(255,215,0,0.9),
-                0 0 60px rgba(255,150,0,0.5),
-                inset -5px -5px 15px rgba(0,0,0,0.5);
+        .comet .comet-particles {
+            position: absolute;
+            top: 50%;
+            right: -20px;
+            width: 20px;
+            height: 20px;
+            transform: translateY(-50%);
         }
         
-        .comet.mega .comet-core {
-            width: 120%;
-            height: 120%;
-            top: -10%;
-            left: -10%;
-            background: radial-gradient(circle at 30% 30%, #fff, #ff4400, #cc0000, #440000);
-            box-shadow: 
-                0 0 40px rgba(255,0,0,0.9),
-                0 0 80px rgba(200,0,0,0.5),
-                inset -8px -8px 20px rgba(0,0,0,0.6);
+        .comet .comet-particles::before,
+        .comet .comet-particles::after {
+            content: '';
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #ff8800;
+            border-radius: 50%;
+            animation: particleFly 0.5s linear infinite;
         }
         
-        .comet.dangerous .comet-core {
-            animation: dangerPulse 0.3s ease-in-out infinite alternate;
+        .comet .comet-particles::before {
+            top: 0;
+            animation-delay: 0s;
         }
         
-        @keyframes corePulse {
-            0% { transform: scale(1); }
-            100% { transform: scale(1.1); }
+        .comet .comet-particles::after {
+            top: 10px;
+            animation-delay: 0.25s;
         }
         
-        @keyframes dangerPulse {
-            0% { transform: scale(1); filter: brightness(1); }
-            100% { transform: scale(1.2); filter: brightness(1.5); }
+        @keyframes rockRotate {
+            0% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(90deg) scale(1.05); }
+            50% { transform: rotate(180deg) scale(1); }
+            75% { transform: rotate(270deg) scale(0.95); }
+            100% { transform: rotate(360deg) scale(1); }
         }
         
-        @keyframes tailFlicker {
-            0% { opacity: 0.7; width: 40px; }
-            100% { opacity: 1; width: 60px; }
+        @keyframes trailFlicker {
+            0% { opacity: 0.6; width: 50px; }
+            100% { opacity: 1; width: 70px; }
         }
         
-        @keyframes cometFallDown {
-            0% { transform: translateY(-100px) rotate(0deg); opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { transform: translateY(calc(100vh + 100px)) rotate(360deg); opacity: 0; }
+        @keyframes particleFly {
+            0% { transform: translateX(0); opacity: 1; }
+            100% { transform: translateX(-30px); opacity: 0; }
+        }
+        
+        @keyframes cometFall {
+            0% { 
+                transform: translateY(-100px) rotate(0deg); 
+                opacity: 0;
+                animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            5% { opacity: 1; }
+            50% {
+                transform: translateY(30vh) rotate(180deg);
+                animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            100% { 
+                transform: translateY(calc(100vh + 100px)) rotate(360deg); 
+                opacity: 0;
+            }
         }
         
         /* Диагональное падение справа */
@@ -239,10 +288,20 @@
         }
         
         @keyframes cometFallDiagonalRight {
-            0% { transform: translate(100px, -100px) rotate(0deg); opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { transform: translate(calc(-100vw), calc(100vh)) rotate(360deg); opacity: 0; }
+            0% { 
+                transform: translate(100px, -100px) rotate(0deg); 
+                opacity: 0;
+                animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            5% { opacity: 1; }
+            50% {
+                transform: translate(calc(-20vw), 40vh) rotate(180deg);
+                animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            100% { 
+                transform: translate(calc(-100vw), calc(100vh)) rotate(360deg); 
+                opacity: 0;
+            }
         }
         
         /* Диагональное падение слева */
@@ -251,10 +310,55 @@
         }
         
         @keyframes cometFallDiagonalLeft {
-            0% { transform: translate(-100px, -100px) rotate(0deg); opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { transform: translate(calc(100vw), calc(100vh)) rotate(360deg); opacity: 0; }
+            0% { 
+                transform: translate(-100px, -100px) rotate(0deg); 
+                opacity: 0;
+                animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            5% { opacity: 1; }
+            50% {
+                transform: translate(20vw, 40vh) rotate(180deg);
+                animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            100% { 
+                transform: translate(calc(100vw), calc(100vh)) rotate(360deg); 
+                opacity: 0;
+            }
+        }
+        
+        /* Золотая комета */
+        .comet.golden .comet-rock {
+            background: 
+                radial-gradient(circle at 30% 30%, #d4a574, #8b6914 40%, #5c4408 70%, #3a2a04);
+            box-shadow: 
+                inset -8px -8px 15px rgba(0,0,0,0.6),
+                inset 5px 5px 10px rgba(255,255,255,0.2),
+                0 0 30px rgba(212,165,116,0.5);
+        }
+        
+        /* Мега комета */
+        .comet.mega {
+            width: 80px;
+            height: 80px;
+        }
+        
+        .comet.mega .comet-rock {
+            background: 
+                radial-gradient(circle at 30% 30%, #a0522d, #5c2818 40%, #2c1208 70%, #1a0a04);
+            box-shadow: 
+                inset -10px -10px 20px rgba(0,0,0,0.7),
+                inset 8px 8px 15px rgba(255,255,255,0.15),
+                0 0 40px rgba(160,82,45,0.4);
+        }
+        
+        /* Опасная комета */
+        .comet.dangerous .comet-rock {
+            animation: rockRotate 1.5s linear infinite, dangerGlow 0.5s ease-in-out infinite alternate;
+        }
+        
+        @keyframes dangerGlow {
+            0% { filter: brightness(1); }
+            100% { filter: brightness(1.5); }
         }
         
         /* ==================== УЛУЧШЕНИЯ КОРАБЛЯ ==================== */
@@ -332,14 +436,14 @@
             pointer-events: none;
             width: 8px;
             height: 8px;
-            background: #ff8800;
-            border-radius: 50%;
+            background: #8b7355;
+            border-radius: 45% 55% 50% 50%;
             animation: debrisFly 1s ease-out forwards;
         }
         
         @keyframes debrisFly {
-            0% { transform: translate(0, 0) scale(1); opacity: 1; }
-            100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; }
+            0% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 1; }
+            100% { transform: translate(var(--dx), var(--dy)) scale(0) rotate(360deg); opacity: 0; }
         }
         
         /* ==================== ВЕРХНЯЯ ПАНЕЛЬ ==================== */
@@ -452,6 +556,47 @@
             bottom: 0;
             width: 100%;
             background: linear-gradient(to top, #ff6b00, #ffd700);
+            border-radius: 4px;
+            transition: height 0.3s ease;
+        }
+        
+        /* ==================== ИНДИКАТОР УРОВНЯ СЛОЖНОСТИ ==================== */
+        #difficultyIndicator {
+            position: absolute;
+            top: 50%;
+            left: 10px;
+            transform: translateY(-50%);
+            z-index: 8;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            background: rgba(0,0,0,0.5);
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        #difficultyIndicator .difficulty-label {
+            color: rgba(255,255,255,0.5);
+            font-size: 8px;
+            letter-spacing: 1px;
+        }
+        
+        #difficultyIndicator .difficulty-bar {
+            width: 8px;
+            height: 100px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        #difficultyIndicator .difficulty-fill {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: linear-gradient(to top, #4CAF50, #FF9800, #ff4444);
             border-radius: 4px;
             transition: height 0.3s ease;
         }
@@ -753,15 +898,14 @@
         @media (max-width: 480px) {
             #ship { width: 40px; height: 40px; }
             #ship .ship-emoji { font-size: 35px; }
-            .comet { width: 50px; height: 50px; }
-            .comet.mega { width: 70px; height: 70px; }
+            .comet { width: 40px; height: 40px; }
+            .comet.mega { width: 60px; height: 60px; }
             #scoreInfo { font-size: 15px; }
             .top-button { width: 28px; height: 28px; font-size: 12px; }
             #coinsInfo { font-size: 10px; padding: 2px 8px; }
             .menu-stats { grid-template-columns: 1fr 1fr; }
             #comboText { font-size: 18px; }
-            #fireRateIndicator { right: 5px; }
-            #fireRateIndicator .fire-rate-bar { height: 80px; }
+            #fireRateIndicator, #difficultyIndicator { display: none; }
         }
         
         .hidden { display: none !important; }
@@ -809,6 +953,14 @@
             <div class="fire-rate-label">СКОРОСТЬ</div>
             <div class="fire-rate-bar">
                 <div class="fire-rate-fill" id="fireRateFill" style="height: 20%;"></div>
+            </div>
+        </div>
+        
+        <!-- Индикатор сложности -->
+        <div id="difficultyIndicator">
+            <div class="difficulty-label">СЛОЖНОСТЬ</div>
+            <div class="difficulty-bar">
+                <div class="difficulty-fill" id="difficultyFill" style="height: 10%;"></div>
             </div>
         </div>
         
@@ -1008,7 +1160,8 @@
             maxComets: 6,
             maxPowerups: 2,
             powerupChance: 0.3,
-            shipSpeed: 8
+            shipSpeed: 8,
+            maxDifficultyLevel: 10
         };
         
         // ==================== СОСТОЯНИЕ ====================
@@ -1028,6 +1181,8 @@
             premium: localStorage.getItem('premium') === 'true',
             fireRateLevel: 1,
             maxFireRateLevel: 10,
+            difficultyLevel: 1,
+            maxDifficultyLevel: 10,
             
             // Корабль
             ship: {
@@ -1280,7 +1435,7 @@
             
             gameTimers.spawn = setInterval(() => {
                 if (!state.isPaused && !state.gameOver) spawnComet();
-            }, CONFIG.cometSpawnInterval);
+            }, CONFIG.cometSpawnInterval / state.difficultyLevel);
             
             gameTimers.powerupSpawn = setInterval(() => {
                 if (!state.isPaused && !state.gameOver && Math.random() < CONFIG.powerupChance) {
@@ -1316,6 +1471,12 @@
             fill.style.height = percent + '%';
         }
         
+        function updateDifficultyIndicator() {
+            const fill = $('difficultyFill');
+            const percent = (state.difficultyLevel / state.maxDifficultyLevel) * 100;
+            fill.style.height = percent + '%';
+        }
+        
         // ==================== КОРАБЛЬ ====================
         function initShip() {
             const field = getField();
@@ -1328,25 +1489,47 @@
             
             updateShipVisual();
             
-            // Управление касанием по всему полю
+            // Управление касанием экрана
+            field.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                moveShipToTouch(touch);
+            });
+            
             field.addEventListener('touchmove', (e) => {
                 e.preventDefault();
                 const touch = e.touches[0];
-                const rect = field.getBoundingClientRect();
-                const x = touch.clientX - rect.left - 25;
-                const y = touch.clientY - rect.top - 25;
-                moveShip(x, y);
+                moveShipToTouch(touch);
+            });
+            
+            field.addEventListener('mousedown', (e) => {
+                moveShipToMouse(e);
             });
             
             field.addEventListener('mousemove', (e) => {
-                const rect = field.getBoundingClientRect();
-                const x = e.clientX - rect.left - 25;
-                const y = e.clientY - rect.top - 25;
-                moveShip(x, y);
+                if (e.buttons === 1) { // Левая кнопка мыши
+                    moveShipToMouse(e);
+                }
             });
             
             // Анимация движения
             animateShip();
+        }
+        
+        function moveShipToTouch(touch) {
+            const field = getField();
+            const rect = field.getBoundingClientRect();
+            const x = touch.clientX - rect.left - 25;
+            const y = touch.clientY - rect.top - 25;
+            moveShip(x, y);
+        }
+        
+        function moveShipToMouse(e) {
+            const field = getField();
+            const rect = field.getBoundingClientRect();
+            const x = e.clientX - rect.left - 25;
+            const y = e.clientY - rect.top - 25;
+            moveShip(x, y);
         }
         
         function moveShip(x, y) {
@@ -1447,7 +1630,7 @@
             }
         }
         
-        // ==================== РЕАЛИСТИЧНЫЕ КОМЕТЫ ====================
+        // ==================== РЕАЛИСТИЧНЫЕ КОМЕТЫ-КАМНИ ====================
         function spawnComet() {
             if (comets.length >= CONFIG.maxComets) return;
             
@@ -1457,14 +1640,18 @@
             const comet = document.createElement('div');
             comet.className = 'comet';
             
-            // Создаем реалистичную комету
-            const core = document.createElement('div');
-            core.className = 'comet-core';
-            comet.appendChild(core);
+            // Создаем реалистичный камень
+            const rock = document.createElement('div');
+            rock.className = 'comet-rock';
+            comet.appendChild(rock);
             
-            const tail = document.createElement('div');
-            tail.className = 'comet-tail';
-            comet.appendChild(tail);
+            const trail = document.createElement('div');
+            trail.className = 'comet-trail';
+            comet.appendChild(trail);
+            
+            const particles = document.createElement('div');
+            particles.className = 'comet-particles';
+            comet.appendChild(particles);
             
             // Определяем тип кометы
             const type = Math.random();
@@ -1507,7 +1694,10 @@
             
             // Позиционирование
             let x, y;
-            const duration = 4000 + Math.random() * 2000;
+            // Скорость падения зависит от уровня сложности
+            const baseDuration = 4000 + Math.random() * 2000;
+            const speedMultiplier = 1 - (state.difficultyLevel - 1) * 0.08;
+            const duration = baseDuration * Math.max(0.3, speedMultiplier);
             
             if (trajectory === 'down') {
                 x = Math.random() * (rect.width - 60) + 30;
@@ -1597,6 +1787,19 @@
                         startAutoShoot();
                     }
                     showComboText('⚡ Скорострельность +1!', '#FFD700');
+                }
+                
+                // Увеличиваем сложность при уничтожении комет
+                if (state.cometsDestroyed % 10 === 0 && state.difficultyLevel < state.maxDifficultyLevel) {
+                    state.difficultyLevel++;
+                    updateDifficultyIndicator();
+                    if (gameTimers.spawn) {
+                        clearInterval(gameTimers.spawn);
+                        gameTimers.spawn = setInterval(() => {
+                            if (!state.isPaused && !state.gameOver) spawnComet();
+                        }, CONFIG.cometSpawnInterval / state.difficultyLevel);
+                    }
+                    showComboText('📈 Сложность +1! Кометы быстрее!', '#FF9800');
                 }
                 
                 comet.element.remove();
@@ -1771,6 +1974,13 @@
                 state.timeLeft = CONFIG.baseTime;
                 state.cometsDestroyed = 0;
                 state.combo = 0;
+                
+                // Увеличиваем сложность с каждым уровнем
+                if (state.difficultyLevel < state.maxDifficultyLevel) {
+                    state.difficultyLevel++;
+                    updateDifficultyIndicator();
+                }
+                
                 updateUI();
                 updateTimer();
                 updateProgress();
@@ -2076,6 +2286,7 @@
             state.activePowerups = {};
             state.bonusActive = false;
             state.fireRateLevel = 1;
+            state.difficultyLevel = 1;
             state.ship.rapidFire = false;
             state.ship.tripleShot = false;
             state.ship.damageBoost = false;
@@ -2097,6 +2308,7 @@
             updateLives();
             updateProgress();
             updateFireRateIndicator();
+            updateDifficultyIndicator();
             
             if (!localStorage.getItem('isAdFree')) $('adBanner').classList.add('active');
             
@@ -2152,9 +2364,8 @@
         });
         
         console.log('☄️ Космический стрелок - Охота на кометы');
-        console.log('🎯 Реалистичные кометы с хвостами!');
-        console.log('⚡ Улучшения: ускорение, тройной выстрел, усиленный урон!');
-        console.log('📈 Прогрессия скорострельности!');
+        console.log('🎯 Реалистичные кометы-камни с хвостами!');
+        console.log('📈 Прогрессия сложности и ускорения комет!');
         console.log('💰 Реквизиты: 40817810140101612217');
     </script>
 </body>
