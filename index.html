@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>⭐️ Поймай звезду - Ultimate</title>
+    <title>🚀 Космический стрелок - Deluxe</title>
     
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
@@ -23,9 +23,9 @@
             --primary: #6C3CE1;
             --secondary: #E83E8C;
             --accent: #FFD700;
-            --bg-start: #0f0c29;
-            --bg-mid: #302b63;
-            --bg-end: #24243e;
+            --bg-start: #0a0a1a;
+            --bg-mid: #1a0a2e;
+            --bg-end: #0a0a1a;
             --success: #4CAF50;
             --danger: #ff4444;
             --warning: #FF9800;
@@ -37,7 +37,7 @@
             height: 100vh;
             height: 100dvh;
             overflow: hidden;
-            touch-action: manipulation;
+            touch-action: none;
             position: relative;
         }
         
@@ -46,10 +46,10 @@
             height: 100%;
             position: relative;
             overflow: hidden;
-            background: linear-gradient(135deg, var(--bg-start), var(--bg-mid), var(--bg-end));
+            background: linear-gradient(180deg, var(--bg-start), var(--bg-mid), var(--bg-end));
         }
         
-        /* ==================== АКТИВНЫЙ ФОН ==================== */
+        /* ==================== ФОН ==================== */
         #bgCanvas {
             position: absolute;
             top: 0;
@@ -60,376 +60,286 @@
             pointer-events: none;
         }
         
-        .nebula {
+        /* ==================== ИГРОВОЕ ПОЛЕ ==================== */
+        #gameField {
             position: absolute;
-            border-radius: 50%;
-            filter: blur(60px);
-            opacity: 0.3;
-            z-index: 0;
-            pointer-events: none;
-            animation: nebulaFloat 20s ease-in-out infinite;
+            top: 70px;
+            left: 10px;
+            right: 10px;
+            bottom: 60px;
+            z-index: 2;
+            border: 2px solid rgba(255,255,255,0.05);
+            border-radius: 16px;
+            overflow: hidden;
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(5px);
+            touch-action: none;
         }
         
-        @keyframes nebulaFloat {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            25% { transform: translate(50px, -30px) scale(1.1); }
-            50% { transform: translate(-30px, 50px) scale(0.9); }
-            75% { transform: translate(30px, 30px) scale(1.05); }
-        }
-        
-        .shooting-star {
+        #gameField::before {
+            content: '';
             position: absolute;
-            width: 3px;
-            height: 3px;
-            background: white;
-            border-radius: 50%;
-            z-index: 0;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(ellipse at 20% 50%, rgba(108,60,225,0.05) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 50%, rgba(232,62,140,0.05) 0%, transparent 50%);
             pointer-events: none;
-            animation: shootingStar 4s linear infinite;
+            z-index: 0;
         }
         
-        @keyframes shootingStar {
-            0% { transform: translate(0, 0) scale(1); opacity: 1; }
-            70% { opacity: 1; }
-            100% { transform: translate(-300px, 300px) scale(0); opacity: 0; }
+        /* ==================== КОСМИЧЕСКИЙ КОРАБЛЬ ==================== */
+        #ship {
+            position: absolute;
+            z-index: 6;
+            pointer-events: none;
+            transition: all 0.1s ease-out;
+            width: 60px;
+            height: 60px;
+        }
+        
+        #ship .ship-body {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transition: transform 0.3s;
+        }
+        
+        #ship .ship-body .ship-emoji {
+            font-size: 50px;
+            display: block;
+            filter: drop-shadow(0 0 20px rgba(108,60,225,0.5));
+            transition: all 0.3s;
+        }
+        
+        #ship .ship-glow {
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 20px;
+            background: radial-gradient(ellipse, rgba(108,60,225,0.3) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: engineGlow 0.5s ease-in-out infinite alternate;
+        }
+        
+        @keyframes engineGlow {
+            0% { opacity: 0.5; transform: translateX(-50%) scale(1); }
+            100% { opacity: 1; transform: translateX(-50%) scale(1.2); }
+        }
+        
+        /* ==================== ПУЛИ ==================== */
+        .bullet {
+            position: absolute;
+            z-index: 4;
+            pointer-events: none;
+        }
+        
+        .bullet .bullet-emoji {
+            display: block;
+            font-size: 16px;
+            animation: bulletFly 0.4s ease-out forwards;
+        }
+        
+        @keyframes bulletFly {
+            0% { transform: scale(0.5); opacity: 1; }
+            100% { transform: translateY(-80px) scale(1.5); opacity: 0; }
+        }
+        
+        /* ==================== ЗВЕЗДЫ ==================== */
+        .target-star {
+            position: absolute;
+            z-index: 5;
+            cursor: pointer;
+            touch-action: none;
+            animation: starFloat 2s ease-in-out infinite;
+        }
+        
+        .target-star .star-emoji {
+            display: block;
+            font-size: 30px;
+            filter: drop-shadow(0 0 15px rgba(255,215,0,0.4));
+            transition: transform 0.2s;
+        }
+        
+        .target-star.bad .star-emoji {
+            filter: drop-shadow(0 0 15px rgba(255,0,0,0.5));
+        }
+        
+        .target-star.hit {
+            animation: starHit 0.3s ease-out forwards;
+        }
+        
+        @keyframes starHit {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+        
+        @keyframes starFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        /* ==================== КОМЕТЫ ==================== */
+        .comet {
+            position: absolute;
+            z-index: 5;
+            pointer-events: none;
+            animation: cometFall linear forwards;
+        }
+        
+        .comet .comet-body {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+        
+        .comet .comet-emoji {
+            font-size: 35px;
+            filter: drop-shadow(0 0 20px rgba(255,100,0,0.5));
+        }
+        
+        .comet .comet-tail {
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(to right, rgba(255,200,100,0.8), transparent);
+            border-radius: 2px;
+            animation: tailFlicker 0.3s ease-in-out infinite alternate;
+        }
+        
+        @keyframes tailFlicker {
+            0% { opacity: 0.5; width: 40px; }
+            100% { opacity: 1; width: 70px; }
+        }
+        
+        .comet.exploding {
+            animation: cometExplode 0.5s ease-out forwards;
+        }
+        
+        @keyframes cometExplode {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(3); opacity: 0; }
+        }
+        
+        @keyframes cometFall {
+            0% { transform: translateY(-50px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(calc(100vh)) rotate(180deg); opacity: 0; }
+        }
+        
+        /* ==================== ВЗРЫВЫ ==================== */
+        .explosion {
+            position: absolute;
+            pointer-events: none;
+            z-index: 7;
+            animation: explosionAnim 0.6s ease-out forwards;
+        }
+        
+        @keyframes explosionAnim {
+            0% { transform: scale(0.5); opacity: 1; }
+            100% { transform: scale(2.5); opacity: 0; }
         }
         
         /* ==================== ВЕРХНЯЯ ПАНЕЛЬ ==================== */
         #topBar {
             position: absolute;
-            top: 10px;
+            top: 8px;
             left: 10px;
             right: 10px;
-            padding: 12px 16px;
+            padding: 8px 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             z-index: 10;
             background: rgba(0,0,0,0.7);
             backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.05);
         }
         
         #levelInfo {
-            color: white;
+            color: rgba(255,255,255,0.6);
             font-weight: 700;
-            font-size: 14px;
+            font-size: 10px;
             letter-spacing: 1px;
         }
         
-        #levelInfo span {
-            color: var(--accent);
-        }
-        
-        #comboInfo {
-            color: var(--accent);
-            font-size: 11px;
-            letter-spacing: 0.5px;
-            opacity: 0.8;
-            min-height: 16px;
-        }
+        #levelInfo span { color: var(--accent); font-size: 14px; }
         
         #scoreInfo {
             color: var(--accent);
             font-weight: 900;
-            font-size: 24px;
-            text-shadow: 0 0 20px rgba(255,215,0,0.3);
+            font-size: 18px;
+            text-shadow: 0 0 20px rgba(255,215,0,0.2);
         }
         
         .top-button {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.05);
             color: white;
-            font-size: 18px;
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
+            font-size: 14px;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            touch-action: manipulation;
-            backdrop-filter: blur(10px);
-            position: relative;
-        }
-        
-        .top-button:active {
-            transform: scale(0.85);
-            background: rgba(255,255,255,0.2);
-        }
-        
-        .top-button .badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background: var(--danger);
-            color: white;
-            font-size: 8px;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-        }
-        
-        /* ==================== ЖИЗНИ ==================== */
-        #livesContainer {
-            display: flex;
-            gap: 4px;
-            align-items: center;
-            padding: 4px 12px;
-            background: rgba(255,0,0,0.15);
-            border-radius: 12px;
-            border: 1px solid rgba(255,0,0,0.2);
-        }
-        
-        .life-icon {
-            font-size: 16px;
             transition: all 0.3s;
-            cursor: default;
+            touch-action: manipulation;
         }
+        .top-button:active { transform: scale(0.85); }
         
-        .life-icon.lost {
-            opacity: 0.2;
-            transform: scale(0.8);
-            animation: lifeLost 0.5s ease-out;
-        }
-        
-        @keyframes lifeLost {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.5); opacity: 0.5; }
-            100% { transform: scale(0); opacity: 0; }
-        }
-        
-        /* ==================== МОНЕТЫ ==================== */
         #coinsInfo {
             color: var(--accent);
-            font-size: 14px;
+            font-size: 12px;
             display: flex;
             align-items: center;
-            gap: 4px;
-            padding: 4px 12px;
-            background: rgba(255,215,0,0.1);
-            border-radius: 12px;
-            border: 1px solid rgba(255,215,0,0.2);
-            margin-right: 6px;
+            gap: 3px;
+            padding: 3px 10px;
+            background: rgba(255,215,0,0.08);
+            border-radius: 8px;
+            border: 1px solid rgba(255,215,0,0.1);
         }
         
-        #coinsInfo span {
-            font-weight: 700;
-        }
-        
-        /* ==================== ТАЙМЕР ==================== */
-        #timerContainer {
-            position: absolute;
-            top: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 10;
-            text-align: center;
-        }
-        
-        #timerCircle {
-            width: 64px;
-            height: 64px;
-            border-radius: 50%;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(10px);
+        #livesContainer {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 3px solid rgba(255,255,255,0.2);
-            transition: all 0.3s;
-            position: relative;
+            gap: 2px;
+            padding: 3px 8px;
+            background: rgba(255,0,0,0.08);
+            border-radius: 8px;
+            border: 1px solid rgba(255,0,0,0.1);
         }
-        
-        #timerCircle::before {
-            content: '';
-            position: absolute;
-            inset: -3px;
-            border-radius: 50%;
-            padding: 3px;
-            background: conic-gradient(from 0deg, transparent, var(--accent), transparent);
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        
-        #timerCircle.warning::before {
-            opacity: 1;
-            animation: timerSpin 1s linear infinite;
-        }
-        
-        @keyframes timerSpin {
-            to { transform: rotate(360deg); }
-        }
-        
-        #timerText {
-            color: white;
-            font-size: 24px;
-            font-weight: 900;
-            transition: color 0.3s;
-            font-variant-numeric: tabular-nums;
-        }
-        
-        #timerText.warning {
-            color: #ff4444;
-            animation: timerPulse 0.5s ease-in-out infinite;
-        }
-        
-        @keyframes timerPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-        
-        /* ==================== ЗВЕЗДА ==================== */
-        .star {
-            position: absolute;
-            cursor: pointer;
-            z-index: 5;
-            touch-action: manipulation;
-            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-            filter: drop-shadow(0 0 30px rgba(255,215,0,0.6));
-            animation: starFloat 3s ease-in-out infinite;
-        }
-        
-        .star.good {
-            animation: starFloat 3s ease-in-out infinite, starGlow 2s ease-in-out infinite;
-        }
-        
-        .star.bad {
-            animation: starFloat 3s ease-in-out infinite, starShake 0.5s ease-in-out infinite;
-            filter: drop-shadow(0 0 30px rgba(255,0,0,0.6));
-        }
-        
-        .star:active {
-            transform: scale(1.5) !important;
-            filter: drop-shadow(0 0 50px rgba(255,215,0,1)) !important;
-        }
-        
-        @keyframes starFloat {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-10px) rotate(10deg); }
-        }
-        
-        @keyframes starGlow {
-            0%, 100% { filter: drop-shadow(0 0 20px rgba(255,215,0,0.4)); }
-            50% { filter: drop-shadow(0 0 40px rgba(255,215,0,0.9)); }
-        }
-        
-        @keyframes starShake {
-            0%, 100% { transform: rotate(-5deg); }
-            50% { transform: rotate(5deg); }
-        }
-        
-        .star .star-emoji {
-            display: block;
-            transition: transform 0.3s;
-        }
-        
-        .star .star-ring {
-            position: absolute;
-            inset: -15px;
-            border-radius: 50%;
-            border: 2px solid rgba(255,215,0,0.2);
-            animation: ringExpand 2s ease-out infinite;
-            pointer-events: none;
-        }
-        
-        @keyframes ringExpand {
-            0% { transform: scale(0.8); opacity: 1; }
-            100% { transform: scale(1.5); opacity: 0; }
-        }
+        .life-icon { font-size: 12px; transition: all 0.3s; }
+        .life-icon.lost { opacity: 0.2; transform: scale(0.8); }
         
         /* ==================== БОНУСЫ ==================== */
-        .bonus {
+        .bonus-drop {
             position: absolute;
-            cursor: pointer;
             z-index: 5;
-            touch-action: manipulation;
-            animation: bonusAppear 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-            filter: drop-shadow(0 0 20px rgba(255,255,255,0.3));
-            transition: transform 0.2s;
-        }
-        
-        .bonus:active {
-            transform: scale(1.4) !important;
-            filter: drop-shadow(0 0 40px rgba(255,255,255,0.8)) !important;
-        }
-        
-        .bonus .bonus-emoji {
-            display: block;
-            font-size: 44px;
-            animation: bonusFloat 2s ease-in-out infinite;
-        }
-        
-        @keyframes bonusFloat {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-8px); }
-        }
-        
-        .bonus .bonus-label {
-            position: absolute;
-            bottom: -20px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 8px;
-            color: white;
-            background: rgba(0,0,0,0.6);
-            padding: 2px 8px;
-            border-radius: 8px;
-            white-space: nowrap;
-            font-family: -apple-system, sans-serif;
-        }
-        
-        .bonus .bonus-timer {
-            position: absolute;
-            bottom: -30px;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 2px;
-            overflow: hidden;
-        }
-        
-        .bonus .bonus-timer .timer-fill {
-            height: 100%;
-            width: 100%;
-            border-radius: 2px;
-            transition: width 3s linear;
-        }
-        
-        /* ==================== ЧАСТИЦЫ ==================== */
-        .particle {
-            position: absolute;
             pointer-events: none;
-            z-index: 3;
-            animation: particleFly 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            animation: bonusDrop 3s ease-in forwards;
         }
         
-        .particle .particle-emoji {
+        .bonus-drop .bonus-emoji {
             display: block;
-            font-size: inherit;
+            font-size: 25px;
+            filter: drop-shadow(0 0 15px rgba(255,255,255,0.3));
         }
         
-        @keyframes particleFly {
-            0% { transform: translate(0, 0) scale(1); opacity: 1; }
-            100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; }
+        @keyframes bonusDrop {
+            0% { transform: translateY(-30px) scale(0.5); opacity: 0; }
+            10% { transform: translateY(0px) scale(1); opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(200px) scale(0.8); opacity: 0; }
         }
         
-        /* ==================== КОМБО ТЕКСТ ==================== */
+        /* ==================== КОМБО ==================== */
         #comboText {
             position: absolute;
-            bottom: 120px;
+            bottom: 80px;
             left: 50%;
             transform: translateX(-50%);
             font-weight: 900;
@@ -439,13 +349,9 @@
             white-space: nowrap;
             opacity: 0;
             transition: all 0.3s;
-            font-size: 32px;
+            font-size: 24px;
         }
-        
-        #comboText.visible {
-            opacity: 1;
-            animation: comboPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
+        #comboText.visible { opacity: 1; animation: comboPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
         
         @keyframes comboPop {
             0% { transform: translateX(-50%) scale(0) rotate(-10deg); opacity: 0; }
@@ -453,152 +359,33 @@
             100% { transform: translateX(-50%) scale(1) rotate(0deg); opacity: 1; }
         }
         
-        /* ==================== МАГАЗИН ==================== */
-        #shopOverlay {
+        /* ==================== ПРОГРЕСС ==================== */
+        #levelProgress {
             position: absolute;
-            top: 0;
-            left: 0;
+            bottom: 68px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 8;
+            width: 140px;
+            height: 3px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        #levelProgress .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            border-radius: 3px;
+            transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            width: 0%;
+        }
+        #levelProgress .progress-label {
+            position: absolute;
+            top: -16px;
             right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.9);
-            z-index: 50;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            backdrop-filter: blur(20px);
-        }
-        
-        #shopOverlay.active {
-            display: flex;
-        }
-        
-        .shop-card {
-            background: rgba(255,255,255,0.05);
-            border-radius: 24px;
-            padding: 30px;
-            max-width: 420px;
-            width: 100%;
-            border: 1px solid rgba(255,255,255,0.1);
-            backdrop-filter: blur(20px);
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-        
-        .shop-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        
-        .shop-title {
-            color: white;
-            font-size: 28px;
-            font-weight: 900;
-        }
-        
-        .shop-title span {
-            color: var(--accent);
-        }
-        
-        .shop-coins {
-            color: var(--accent);
-            font-size: 18px;
-            font-weight: 700;
-            padding: 8px 16px;
-            background: rgba(255,215,0,0.1);
-            border-radius: 12px;
-            border: 1px solid rgba(255,215,0,0.2);
-        }
-        
-        .shop-item {
-            background: rgba(255,255,255,0.05);
-            border-radius: 16px;
-            padding: 16px;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            border: 1px solid rgba(255,255,255,0.05);
-            transition: all 0.3s;
-            cursor: pointer;
-        }
-        
-        .shop-item:active {
-            transform: scale(0.98);
-        }
-        
-        .shop-item .item-icon {
-            font-size: 32px;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(255,255,255,0.05);
-            border-radius: 12px;
-        }
-        
-        .shop-item .item-info {
-            flex: 1;
-        }
-        
-        .shop-item .item-name {
-            color: white;
-            font-size: 14px;
-            font-weight: 700;
-            font-family: -apple-system, sans-serif;
-        }
-        
-        .shop-item .item-desc {
-            color: rgba(255,255,255,0.6);
-            font-size: 11px;
-            font-family: -apple-system, sans-serif;
-            margin-top: 2px;
-        }
-        
-        .shop-item .item-price {
-            color: var(--accent);
-            font-size: 16px;
-            font-weight: 700;
-            padding: 6px 14px;
-            background: rgba(255,215,0,0.15);
-            border-radius: 10px;
-            border: 1px solid rgba(255,215,0,0.2);
-            white-space: nowrap;
-        }
-        
-        .shop-item .item-price.owned {
-            color: var(--success);
-            border-color: var(--success);
-            background: rgba(76,175,80,0.15);
-        }
-        
-        .shop-item .item-price.active {
-            color: var(--warning);
-            border-color: var(--warning);
-            background: rgba(255,152,0,0.15);
-        }
-        
-        .shop-close {
-            width: 100%;
-            padding: 14px;
-            margin-top: 16px;
-            background: rgba(255,255,255,0.1);
-            border: none;
-            border-radius: 14px;
-            color: white;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-family: 'Orbitron', sans-serif;
-        }
-        
-        .shop-close:active {
-            transform: scale(0.95);
-            background: rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.2);
+            font-size: 7px;
+            letter-spacing: 1px;
         }
         
         /* ==================== МЕНЮ ==================== */
@@ -608,102 +395,152 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.85);
+            background: rgba(0,0,0,0.92);
             z-index: 90;
             display: none;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 15px;
             backdrop-filter: blur(20px);
         }
-        
-        #menuOverlay.active {
-            display: flex;
-        }
+        #menuOverlay.active { display: flex; }
         
         .menu-card {
-            background: rgba(255,255,255,0.05);
-            border-radius: 24px;
-            padding: 30px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 20px;
+            padding: 20px;
             max-width: 400px;
             width: 100%;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.05);
             backdrop-filter: blur(20px);
-            text-align: center;
+            max-height: 90vh;
+            overflow-y: auto;
         }
         
-        .menu-title {
-            color: white;
-            font-size: 36px;
-            font-weight: 900;
-            margin-bottom: 10px;
-        }
-        
-        .menu-title span {
-            color: var(--accent);
-        }
-        
-        .menu-subtitle {
-            color: rgba(255,255,255,0.6);
-            font-size: 14px;
-            font-family: -apple-system, sans-serif;
-            margin-bottom: 25px;
-        }
+        .menu-title { color: white; font-size: 24px; font-weight: 900; text-align: center; margin-bottom: 5px; }
+        .menu-title span { color: var(--accent); }
+        .menu-subtitle { color: rgba(255,255,255,0.3); font-size: 10px; text-align: center; font-family: -apple-system, sans-serif; margin-bottom: 12px; }
         
         .menu-stats {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 25px;
+            gap: 6px;
+            margin-bottom: 12px;
         }
-        
         .menu-stat {
-            background: rgba(255,255,255,0.05);
-            border-radius: 12px;
-            padding: 12px;
-            border: 1px solid rgba(255,255,255,0.05);
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            padding: 8px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.03);
         }
-        
-        .menu-stat .stat-value {
-            color: var(--accent);
-            font-size: 20px;
-            font-weight: 700;
-        }
-        
-        .menu-stat .stat-label {
-            color: rgba(255,255,255,0.4);
-            font-size: 8px;
-            letter-spacing: 0.5px;
-            margin-top: 4px;
-        }
+        .menu-stat .stat-value { color: var(--accent); font-size: 16px; font-weight: 700; }
+        .menu-stat .stat-label { color: rgba(255,255,255,0.2); font-size: 7px; letter-spacing: 0.5px; margin-top: 2px; }
         
         .menu-button {
             width: 100%;
-            padding: 14px;
-            margin: 6px 0;
+            padding: 10px;
+            margin: 3px 0;
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
             border: none;
-            border-radius: 14px;
-            font-size: 16px;
+            border-radius: 10px;
+            font-size: 12px;
             font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transition: all 0.3s;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 0.5px;
+        }
+        .menu-button:active { transform: scale(0.95); }
+        .menu-button.gold { background: linear-gradient(135deg, #f7971e, #ffd200); }
+        .menu-button.outline { background: transparent; border: 2px solid rgba(255,255,255,0.08); }
+        
+        /* ==================== МАГАЗИН ==================== */
+        #shopOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.94);
+            z-index: 50;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            backdrop-filter: blur(20px);
+        }
+        #shopOverlay.active { display: flex; }
+        
+        .shop-card {
+            background: rgba(255,255,255,0.03);
+            border-radius: 20px;
+            padding: 18px;
+            max-width: 420px;
+            width: 100%;
+            border: 1px solid rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .shop-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .shop-title { color: white; font-size: 20px; font-weight: 900; }
+        .shop-title span { color: var(--accent); }
+        .shop-coins { color: var(--accent); font-size: 14px; font-weight: 700; padding: 4px 12px; background: rgba(255,215,0,0.08); border-radius: 8px; border: 1px solid rgba(255,215,0,0.08); }
+        
+        .shop-section-title {
+            color: rgba(255,255,255,0.3);
+            font-size: 9px;
+            letter-spacing: 2px;
+            margin: 12px 0 6px 0;
+            text-transform: uppercase;
+        }
+        
+        .shop-item {
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid rgba(255,255,255,0.03);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .shop-item:active { transform: scale(0.97); }
+        .shop-item .item-icon { font-size: 22px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.03); border-radius: 8px; }
+        .shop-item .item-info { flex: 1; }
+        .shop-item .item-name { color: white; font-size: 12px; font-weight: 700; font-family: -apple-system, sans-serif; }
+        .shop-item .item-desc { color: rgba(255,255,255,0.3); font-size: 9px; font-family: -apple-system, sans-serif; }
+        .shop-item .item-price { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 6px; white-space: nowrap; }
+        .shop-item .item-price.coin { color: var(--accent); background: rgba(255,215,0,0.08); border: 1px solid rgba(255,215,0,0.08); }
+        .shop-item .item-price.real { color: var(--success); background: rgba(76,175,80,0.08); border: 1px solid rgba(76,175,80,0.08); }
+        .shop-item .item-price.owned { color: var(--success); background: rgba(76,175,80,0.08); border-color: var(--success); }
+        .shop-item .item-price.equipped { color: var(--accent); background: rgba(255,215,0,0.15); border-color: var(--accent); }
+        
+        .shop-close {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            background: rgba(255,255,255,0.05);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
             font-family: 'Orbitron', sans-serif;
         }
-        
-        .menu-button:active {
-            transform: scale(0.95);
-        }
-        
-        .menu-button.gold {
-            background: linear-gradient(135deg, #f7971e, #ffd200);
-        }
-        
-        .menu-button.outline {
-            background: transparent;
-            border: 2px solid rgba(255,255,255,0.2);
-        }
+        .shop-close:active { transform: scale(0.95); background: rgba(255,255,255,0.08); }
         
         /* ==================== ОВЕРЛЕИ ==================== */
         .overlay {
@@ -712,7 +549,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.85);
+            background: rgba(0,0,0,0.9);
             z-index: 100;
             display: none;
             align-items: center;
@@ -720,118 +557,45 @@
             flex-direction: column;
             padding: 20px;
             backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
             animation: overlayFade 0.3s ease-out;
         }
-        
-        .overlay.active {
-            display: flex;
-        }
-        
-        @keyframes overlayFade {
-            0% { opacity: 0; transform: scale(0.9); }
-            100% { opacity: 1; transform: scale(1); }
-        }
+        .overlay.active { display: flex; }
+        @keyframes overlayFade { 0% { opacity: 0; transform: scale(0.95); } 100% { opacity: 1; transform: scale(1); } }
         
         .overlay-card {
-            background: rgba(255,255,255,0.05);
-            border-radius: 24px;
-            padding: 30px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 20px;
+            padding: 22px;
             text-align: center;
-            max-width: 400px;
+            max-width: 380px;
             width: 100%;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.05);
             backdrop-filter: blur(20px);
         }
-        
-        .overlay-title {
-            color: white;
-            font-size: 32px;
-            font-weight: 900;
-            margin-bottom: 15px;
-        }
-        
-        .overlay-text {
-            color: rgba(255,255,255,0.8);
-            font-size: 16px;
-            margin-bottom: 8px;
-            font-family: -apple-system, sans-serif;
-        }
+        .overlay-title { color: white; font-size: 24px; font-weight: 900; margin-bottom: 10px; }
+        .overlay-text { color: rgba(255,255,255,0.6); font-size: 13px; margin-bottom: 5px; font-family: -apple-system, sans-serif; }
         
         .game-button {
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
             border: none;
-            padding: 14px 30px;
-            font-size: 16px;
+            padding: 10px 20px;
+            font-size: 12px;
             font-weight: 700;
-            border-radius: 16px;
+            border-radius: 12px;
             cursor: pointer;
-            margin: 6px;
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            box-shadow: 0 4px 20px rgba(108,60,225,0.3);
+            margin: 4px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 20px rgba(108,60,225,0.15);
             width: 100%;
-            max-width: 280px;
+            max-width: 240px;
             touch-action: manipulation;
             font-family: 'Orbitron', sans-serif;
-            letter-spacing: 0.5px;
         }
-        
-        .game-button:active {
-            transform: scale(0.95);
-        }
-        
-        .game-button.gold {
-            background: linear-gradient(135deg, #f7971e, #ffd200);
-            box-shadow: 0 4px 20px rgba(255,215,0,0.3);
-        }
-        
-        .game-button.purple {
-            background: linear-gradient(135deg, #a18cd1, #fbc2eb);
-            color: #1a1a2e;
-        }
-        
-        .game-button.outline {
-            background: transparent;
-            border: 2px solid rgba(255,255,255,0.2);
-            box-shadow: none;
-        }
-        
-        .game-button.success {
-            background: linear-gradient(135deg, var(--success), #45a049);
-            box-shadow: 0 4px 20px rgba(76,175,80,0.3);
-        }
-        
-        /* ==================== ПРОГРЕСС УРОВНЯ ==================== */
-        #levelProgress {
-            position: absolute;
-            bottom: 70px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 8;
-            width: 200px;
-            height: 4px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 4px;
-            overflow: hidden;
-        }
-        
-        #levelProgress .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--primary), var(--accent));
-            border-radius: 4px;
-            transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-            width: 0%;
-        }
-        
-        #levelProgress .progress-label {
-            position: absolute;
-            top: -20px;
-            right: 0;
-            color: rgba(255,255,255,0.4);
-            font-size: 8px;
-            letter-spacing: 1px;
-        }
+        .game-button:active { transform: scale(0.95); }
+        .game-button.gold { background: linear-gradient(135deg, #f7971e, #ffd200); }
+        .game-button.purple { background: linear-gradient(135deg, #a18cd1, #fbc2eb); color: #1a1a2e; }
+        .game-button.outline { background: transparent; border: 2px solid rgba(255,255,255,0.08); box-shadow: none; }
         
         /* ==================== РЕКЛАМА ==================== */
         #adBanner {
@@ -839,67 +603,44 @@
             bottom: 0;
             left: 0;
             right: 0;
-            height: 60px;
-            background: rgba(0,0,0,0.7);
+            height: 50px;
+            background: rgba(0,0,0,0.6);
             z-index: 20;
             display: none;
             align-items: center;
             justify-content: center;
-            gap: 12px;
+            gap: 8px;
             backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-top: 1px solid rgba(255,255,255,0.05);
+            border-top: 1px solid rgba(255,255,255,0.03);
         }
-        
-        #adBanner.active {
-            display: flex;
-        }
-        
+        #adBanner.active { display: flex; }
         .ad-button {
-            background: rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.05);
             color: white;
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 6px 16px;
-            border-radius: 12px;
-            font-size: 11px;
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 3px 12px;
+            border-radius: 8px;
+            font-size: 9px;
             cursor: pointer;
             touch-action: manipulation;
             transition: all 0.3s;
             font-family: -apple-system, sans-serif;
         }
-        
-        .ad-button:active {
-            transform: scale(0.9);
-        }
-        
-        .ad-button.premium {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border-color: transparent;
-        }
+        .ad-button:active { transform: scale(0.9); }
+        .ad-button.premium { background: linear-gradient(135deg, var(--primary), var(--secondary)); border-color: transparent; }
         
         /* ==================== АДАПТИВНОСТЬ ==================== */
         @media (max-width: 480px) {
-            .star .star-emoji { font-size: 50px !important; }
-            .bonus .bonus-emoji { font-size: 36px !important; }
-            #scoreInfo { font-size: 20px; }
-            .overlay-title { font-size: 24px; }
-            .shop-title { font-size: 22px; }
-            #topBar { padding: 10px 14px; }
-            .top-button { width: 34px; height: 34px; font-size: 16px; }
-            #timerCircle { width: 54px; height: 54px; }
-            #timerText { font-size: 20px; }
-            #comboText { font-size: 24px; }
-            #coinsInfo { font-size: 12px; padding: 2px 8px; }
+            #ship { width: 45px; height: 45px; }
+            #ship .ship-body .ship-emoji { font-size: 38px; }
+            .target-star .star-emoji { font-size: 24px; }
+            .comet .comet-emoji { font-size: 28px; }
+            .comet .comet-tail { width: 40px; }
+            #scoreInfo { font-size: 15px; }
+            .top-button { width: 28px; height: 28px; font-size: 12px; }
+            #coinsInfo { font-size: 10px; padding: 2px 8px; }
             .menu-stats { grid-template-columns: 1fr 1fr; }
-            .shop-card { padding: 20px; }
-        }
-        
-        @media (max-width: 380px) {
-            .top-button { width: 30px; height: 30px; font-size: 14px; }
-            #levelInfo { font-size: 11px; }
-            #scoreInfo { font-size: 17px; }
-            #livesContainer { padding: 2px 8px; }
-            .life-icon { font-size: 13px; }
+            #comboText { font-size: 18px; }
         }
         
         .hidden { display: none !important; }
@@ -907,20 +648,15 @@
 </head>
 <body>
     <div id="gameArea">
-        <!-- Активный фон -->
         <canvas id="bgCanvas"></canvas>
-        <div class="nebula" style="width: 400px; height: 400px; background: rgba(108,60,225,0.2); top: -100px; left: -100px; animation-delay: 0s;"></div>
-        <div class="nebula" style="width: 500px; height: 500px; background: rgba(232,62,140,0.15); bottom: -150px; right: -150px; animation-delay: -7s;"></div>
-        <div class="nebula" style="width: 300px; height: 300px; background: rgba(255,215,0,0.1); top: 50%; left: 50%; animation-delay: -14s;"></div>
         
         <!-- Верхняя панель -->
         <div id="topBar">
             <div>
                 <div id="levelInfo">УРОВЕНЬ <span id="levelNum">1</span></div>
-                <div id="comboInfo"></div>
             </div>
             
-            <div style="display: flex; gap: 6px; align-items: center;">
+            <div style="display: flex; gap: 4px; align-items: center;">
                 <div id="livesContainer">
                     <span class="life-icon">❤️</span>
                     <span class="life-icon">❤️</span>
@@ -929,25 +665,25 @@
                 
                 <div id="coinsInfo">💰 <span id="coinsNum">0</span></div>
                 
-                <button class="top-button" onclick="togglePause()" id="pauseBtn">⏸</button>
                 <button class="top-button" onclick="toggleSound()" id="soundBtn">🔊</button>
-                <button class="top-button" onclick="openMenu()" id="menuBtn">☰</button>
-                <button class="top-button" onclick="openShop()" id="shopBtn">🛒</button>
-                <button class="top-button" onclick="showLeaderboard()">🏆</button>
-                <button class="top-button" onclick="shareGame()">📤</button>
+                <button class="top-button" onclick="openMenu()">☰</button>
             </div>
             
             <div id="scoreInfo">⭐️ <span id="scoreNum">0</span></div>
         </div>
         
-        <!-- Таймер -->
-        <div id="timerContainer">
-            <div id="timerCircle">
-                <span id="timerText">10</span>
+        <!-- Игровое поле -->
+        <div id="gameField">
+            <!-- Корабль -->
+            <div id="ship">
+                <div class="ship-body">
+                    <span class="ship-emoji" id="shipEmoji">🚀</span>
+                    <div class="ship-glow"></div>
+                </div>
             </div>
         </div>
         
-        <!-- Прогресс уровня -->
+        <!-- Прогресс -->
         <div id="levelProgress">
             <div class="progress-fill" id="progressFill"></div>
             <div class="progress-label" id="progressLabel">0%</div>
@@ -956,9 +692,9 @@
         <!-- Комбо текст -->
         <div id="comboText"></div>
         
-        <!-- Рекламный баннер -->
+        <!-- Реклама -->
         <div id="adBanner">
-            <span style="font-size: 13px; color: white; font-family: -apple-system, sans-serif;">📢 Реклама</span>
+            <span style="font-size: 10px; color: rgba(255,255,255,0.3);">📢 Реклама</span>
             <button class="ad-button" onclick="clickAd()">Подробнее</button>
             <button class="ad-button premium" onclick="removeAds()">💎 Premium</button>
         </div>
@@ -966,8 +702,8 @@
         <!-- МЕНЮ -->
         <div id="menuOverlay">
             <div class="menu-card">
-                <div class="menu-title">⭐️ <span>Меню</span></div>
-                <div class="menu-subtitle">Добро пожаловать в игру!</div>
+                <div class="menu-title">🚀 <span>Космический</span></div>
+                <div class="menu-subtitle">Звездный стрелок</div>
                 
                 <div class="menu-stats">
                     <div class="menu-stat">
@@ -984,7 +720,7 @@
                     </div>
                 </div>
                 
-                <button class="menu-button gold" onclick="closeMenu(); startGame();">🔄 Новая игра</button>
+                <button class="menu-button gold" onclick="closeMenu(); startGame();">🎯 Новая игра</button>
                 <button class="menu-button" onclick="closeMenu(); openShop();">🛒 Магазин</button>
                 <button class="menu-button" onclick="closeMenu(); showLeaderboard();">🏆 Рекорды</button>
                 <button class="menu-button outline" onclick="closeMenu();">✕ Закрыть</button>
@@ -999,65 +735,105 @@
                     <div class="shop-coins">💰 <span id="shopCoins">0</span></div>
                 </div>
                 
+                <div class="shop-section-title">🚀 Корабли</div>
+                
+                <div class="shop-item" onclick="buyShip('basic')">
+                    <div class="item-icon">🚀</div>
+                    <div class="item-info">
+                        <div class="item-name">Базовый</div>
+                        <div class="item-desc">Стандартный корабль</div>
+                    </div>
+                    <div class="item-price owned" id="shipBasicPrice">✅ Владелец</div>
+                </div>
+                
+                <div class="shop-item" onclick="buyShip('fighter')">
+                    <div class="item-icon">🛸</div>
+                    <div class="item-info">
+                        <div class="item-name">Истребитель</div>
+                        <div class="item-desc">+1 урон, скорость стрельбы +20%</div>
+                    </div>
+                    <div class="item-price coin" id="shipFighterPrice">100⭐</div>
+                </div>
+                
+                <div class="shop-item" onclick="buyShip('cruiser')">
+                    <div class="item-icon">🚀</div>
+                    <div class="item-info">
+                        <div class="item-name">Крейсер</div>
+                        <div class="item-desc">+2 урон, двойной выстрел</div>
+                    </div>
+                    <div class="item-price coin" id="shipCruiserPrice">250⭐</div>
+                </div>
+                
+                <div class="shop-item" onclick="buyShip('battle')">
+                    <div class="item-icon">⚡</div>
+                    <div class="item-info">
+                        <div class="item-name">Боевой</div>
+                        <div class="item-desc">+3 урон, тройной выстрел</div>
+                    </div>
+                    <div class="item-price coin" id="shipBattlePrice">500⭐</div>
+                </div>
+                
+                <div class="shop-item" onclick="buyShip('legendary')">
+                    <div class="item-icon">👑</div>
+                    <div class="item-info">
+                        <div class="item-name">Легендарный</div>
+                        <div class="item-desc">+5 урон, +50% скорость, лучший корабль</div>
+                    </div>
+                    <div class="item-price real" id="shipLegendaryPrice">299₽</div>
+                </div>
+                
+                <div class="shop-section-title">💎 Усиления</div>
+                
                 <div class="shop-item" onclick="buyPowerup('shield')">
                     <div class="item-icon">🛡️</div>
                     <div class="item-info">
                         <div class="item-name">Щит</div>
-                        <div class="item-desc">Защищает от одной плохой звезды</div>
+                        <div class="item-desc">Защита от 1 попадания</div>
                     </div>
-                    <div class="item-price" id="shieldPrice">50⭐</div>
+                    <div class="item-price coin" id="shieldPrice">50⭐</div>
                 </div>
                 
                 <div class="shop-item" onclick="buyPowerup('double')">
                     <div class="item-icon">2️⃣</div>
                     <div class="item-info">
                         <div class="item-name">Двойные очки</div>
-                        <div class="item-desc">×2 очков на 10 секунд</div>
+                        <div class="item-desc">×2 очков на 10 сек</div>
                     </div>
-                    <div class="item-price" id="doublePrice">80⭐</div>
+                    <div class="item-price coin" id="doublePrice">80⭐</div>
                 </div>
                 
                 <div class="shop-item" onclick="buyPowerup('extraTime')">
                     <div class="item-icon">⏱️</div>
                     <div class="item-info">
                         <div class="item-name">+5 секунд</div>
-                        <div class="item-desc">Добавляет 5 секунд к таймеру</div>
+                        <div class="item-desc">Добавляет 5 сек</div>
                     </div>
-                    <div class="item-price" id="extraTimePrice">60⭐</div>
+                    <div class="item-price coin" id="extraTimePrice">60⭐</div>
                 </div>
                 
-                <div class="shop-item" onclick="buyPowerup('magnet')">
-                    <div class="item-icon">🧲</div>
+                <div class="shop-item" onclick="buyReal('coins500')">
+                    <div class="item-icon">💰</div>
                     <div class="item-info">
-                        <div class="item-name">Магнит</div>
-                        <div class="item-desc">Притягивает бонусы на 5 секунд</div>
+                        <div class="item-name">500 монет</div>
+                        <div class="item-desc">Пополните баланс</div>
                     </div>
-                    <div class="item-price" id="magnetPrice">100⭐</div>
+                    <div class="item-price real">99₽</div>
                 </div>
                 
-                <div class="shop-item" onclick="buyPowerup('extraLife')">
-                    <div class="item-icon">❤️</div>
+                <div class="shop-item" onclick="buyReal('coins1500')">
+                    <div class="item-icon">💎</div>
                     <div class="item-info">
-                        <div class="item-name">Доп. жизнь</div>
-                        <div class="item-desc">Восстанавливает одну жизнь</div>
+                        <div class="item-name">1500 монет</div>
+                        <div class="item-desc">Большой набор</div>
                     </div>
-                    <div class="item-price" id="extraLifePrice">40⭐</div>
-                </div>
-                
-                <div class="shop-item" onclick="buyPowerup('speedBoost')">
-                    <div class="item-icon">🚀</div>
-                    <div class="item-info">
-                        <div class="item-name">Ускорение</div>
-                        <div class="item-desc">Звезда двигается быстрее, но +2 очка</div>
-                    </div>
-                    <div class="item-price" id="speedBoostPrice">120⭐</div>
+                    <div class="item-price real">249₽</div>
                 </div>
                 
                 <button class="shop-close" onclick="closeShop()">✕ Закрыть</button>
             </div>
         </div>
         
-        <!-- Экран паузы -->
+        <!-- Оверлеи -->
         <div id="pauseOverlay" class="overlay">
             <div class="overlay-card">
                 <h2 class="overlay-title">⏸ Пауза</h2>
@@ -1067,27 +843,25 @@
             </div>
         </div>
         
-        <!-- Экран окончания игры -->
         <div id="gameOverOverlay" class="overlay">
             <div class="overlay-card">
                 <h2 class="overlay-title">💫 Игра окончена!</h2>
                 <p class="overlay-text" id="finalScore">⭐️ Счёт: 0</p>
                 <p class="overlay-text" id="finalLevel">📊 Уровень: 1</p>
-                <p class="overlay-text" id="finalCombo">⚡ Лучшее комбо: 0</p>
+                <p class="overlay-text" id="finalCombo">⚡ Комбо: 0</p>
                 <p class="overlay-text" id="bestScore" style="color: var(--accent);">🏆 Лучший: 0</p>
                 
-                <button class="game-button" onclick="startGame()">🔄 Играть снова</button>
+                <button class="game-button" onclick="startGame()">🎯 Играть снова</button>
                 <button class="game-button gold" onclick="showLeaderboard()">🏆 Рекорды</button>
-                <button class="game-button purple" onclick="watchAdForBonus()">🎁 +10 очков за рекламу</button>
+                <button class="game-button purple" onclick="watchAdForBonus()">🎁 +10 очков</button>
             </div>
         </div>
         
-        <!-- Таблица рекордов -->
         <div id="leaderboardOverlay" class="overlay">
             <div class="overlay-card">
                 <h2 class="overlay-title">🏆 <span style="color: var(--accent);">Рекорды</span></h2>
-                <div id="leaderboardList" style="color: white; margin: 15px 0; max-height: 300px; overflow-y: auto; width: 100%;">
-                    <div style="text-align: center; color: rgba(255,255,255,0.4); padding: 20px;">Загрузка...</div>
+                <div id="leaderboardList" style="color: white; margin: 10px 0; max-height: 250px; overflow-y: auto; width: 100%;">
+                    <div style="text-align: center; color: rgba(255,255,255,0.2); padding: 20px;">Загрузка...</div>
                 </div>
                 <button class="game-button" onclick="hideLeaderboard()">✕ Закрыть</button>
             </div>
@@ -1095,46 +869,75 @@
     </div>
     
     <script>
-        // ==================== КОНФИГУРАЦИЯ ====================
+        // ==================== КОНФИГ ====================
         const CONFIG = {
-            baseLevelTime: 10,
-            levelUpScore: 3,
+            baseTime: 30,
+            levelUpScore: 5,
             maxLives: 3,
-            starSizes: { min: 40, max: 70 },
-            bonusChance: 0.15,
-            speed: { min: 400, max: 1500 },
-            powerupDurations: {
-                double: 10000,
-                magnet: 5000
-            }
+            starSpawnInterval: 600,
+            cometSpawnInterval: 2000,
+            maxStars: 10,
+            maxComets: 4,
+            bonusChance: 0.1,
+            shipSpeed: 8
         };
         
         // ==================== СОСТОЯНИЕ ====================
         const state = {
             score: 0,
             level: 1,
-            timeLeft: 10,
+            timeLeft: 30,
             lives: 3,
             combo: 0,
             maxCombo: 0,
+            starsShot: 0,
+            cometsDestroyed: 0,
             isPaused: false,
             gameOver: false,
-            isBadStar: false,
             soundOn: true,
-            gamesPlayed: 0,
-            starClickable: true,
-            bonusActive: false,
-            activePowerups: {},
+            coins: parseInt(localStorage.getItem('coins') || '0'),
             totalScore: parseInt(localStorage.getItem('totalScore') || '0'),
-            coins: parseInt(localStorage.getItem('coins') || '0')
+            premium: localStorage.getItem('premium') === 'true',
+            
+            // Корабль
+            ship: {
+                type: localStorage.getItem('equippedShip') || 'basic',
+                x: 0,
+                y: 0,
+                targetX: 0,
+                targetY: 0,
+                shooting: false,
+                fireRate: 200,
+                lastShot: 0,
+                damage: 1,
+                bullets: 1,
+                speed: 1
+            },
+            
+            activePowerups: {},
+            starClickable: true,
+            bonusActive: false
         };
         
-        let gameTimers = { game: null, star: null, bonus: null, combo: null, powerup: null };
-        let audioContext = null;
-        let bgMusic = null;
-        let bgAnimationId = null;
+        // Данные кораблей
+        const SHIPS = {
+            basic: { name: 'Базовый', emoji: '🚀', damage: 1, bullets: 1, fireRate: 200, speed: 1, price: 0, currency: 'owned' },
+            fighter: { name: 'Истребитель', emoji: '🛸', damage: 2, bullets: 1, fireRate: 160, speed: 1.2, price: 100, currency: 'coin' },
+            cruiser: { name: 'Крейсер', emoji: '🚀', damage: 3, bullets: 2, fireRate: 180, speed: 0.9, price: 250, currency: 'coin' },
+            battle: { name: 'Боевой', emoji: '⚡', damage: 4, bullets: 3, fireRate: 150, speed: 1.3, price: 500, currency: 'coin' },
+            legendary: { name: 'Легендарный', emoji: '👑', damage: 6, bullets: 4, fireRate: 120, speed: 1.5, price: 299, currency: 'real' }
+        };
         
-        // ==================== АКТИВНЫЙ ФОН ====================
+        let gameTimers = { game: null, spawn: null, comet: null, combo: null, powerup: null, shoot: null };
+        let audioContext = null;
+        let bgAnimationId = null;
+        let stars = [];
+        let comets = [];
+        let bullets = [];
+        let bonuses = [];
+        let shipAnimId = null;
+        
+        // ==================== ФОН ====================
         function initBackground() {
             const canvas = document.getElementById('bgCanvas');
             const ctx = canvas.getContext('2d');
@@ -1146,276 +949,144 @@
             resize();
             window.addEventListener('resize', resize);
             
-            const stars = [];
-            const count = 120;
-            
-            for (let i = 0; i < count; i++) {
-                stars.push({
+            const bgStars = [];
+            for (let i = 0; i < 150; i++) {
+                bgStars.push({
                     x: Math.random() * canvas.width,
                     y: Math.random() * canvas.height,
-                    radius: Math.random() * 2.5 + 0.5,
-                    speed: Math.random() * 0.5 + 0.1,
-                    opacity: Math.random() * 0.6 + 0.2,
-                    phase: Math.random() * Math.PI * 2,
-                    color: ['white', '#FFD700', '#6C3CE1', '#E83E8C'][Math.floor(Math.random() * 4)]
-                });
-            }
-            
-            let shootingStars = [];
-            
-            function createShootingStar() {
-                if (Math.random() > 0.01) return;
-                shootingStars.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height * 0.3,
-                    speed: 4 + Math.random() * 3,
-                    length: 80 + Math.random() * 100,
-                    angle: Math.PI / 4 + Math.random() * 0.2,
-                    life: 1,
-                    decay: 0.005 + Math.random() * 0.005
+                    r: Math.random() * 2 + 0.5,
+                    s: Math.random() * 0.3 + 0.05,
+                    o: Math.random() * 0.5 + 0.2,
+                    p: Math.random() * Math.PI * 2
                 });
             }
             
             function draw() {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                
-                // Мерцающие звезды
                 const time = Date.now() / 1000;
-                stars.forEach(star => {
-                    const opacity = star.opacity * (0.6 + 0.4 * Math.sin(time * star.speed + star.phase));
-                    ctx.beginPath();
-                    ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-                    ctx.fillStyle = star.color;
-                    ctx.globalAlpha = opacity;
-                    ctx.fill();
-                    
-                    // Свечение для больших звезд
-                    if (star.radius > 1.8) {
-                        ctx.shadowBlur = 15;
-                        ctx.shadowColor = star.color + '40';
-                        ctx.fill();
-                        ctx.shadowBlur = 0;
-                    }
-                    ctx.globalAlpha = 1;
-                });
                 
-                // Падающие звезды
-                createShootingStar();
-                shootingStars = shootingStars.filter(ss => ss.life > 0);
-                shootingStars.forEach(ss => {
+                bgStars.forEach(s => {
+                    const opacity = s.o * (0.6 + 0.4 * Math.sin(time * s.s + s.p));
                     ctx.beginPath();
-                    ctx.moveTo(ss.x, ss.y);
-                    const endX = ss.x - Math.cos(ss.angle) * ss.length * ss.life;
-                    const endY = ss.y + Math.sin(ss.angle) * ss.length * ss.life;
-                    ctx.lineTo(endX, endY);
-                    
-                    const gradient = ctx.createLinearGradient(ss.x, ss.y, endX, endY);
-                    gradient.addColorStop(0, `rgba(255, 255, 255, ${ss.life})`);
-                    gradient.addColorStop(1, `rgba(255, 255, 255, 0)`);
-                    
-                    ctx.strokeStyle = gradient;
-                    ctx.lineWidth = 2 * ss.life;
-                    ctx.stroke();
-                    
-                    ss.x += Math.cos(ss.angle) * ss.speed;
-                    ss.y += Math.sin(ss.angle) * ss.speed;
-                    ss.life -= ss.decay;
+                    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255,255,255,${opacity})`;
+                    ctx.fill();
                 });
                 
                 bgAnimationId = requestAnimationFrame(draw);
             }
-            
             draw();
-            return () => cancelAnimationFrame(bgAnimationId);
-        }
-        
-        // ==================== ФОНОВАЯ МУЗЫКА ====================
-        function initBackgroundMusic() {
-            try {
-                if (!audioContext) {
-                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                }
-                
-                function playMelody() {
-                    if (!state.soundOn || state.isPaused || state.gameOver) return;
-                    
-                    const now = audioContext.currentTime;
-                    const notes = [
-                        { freq: 523, dur: 0.2, time: 0 },
-                        { freq: 659, dur: 0.2, time: 0.25 },
-                        { freq: 784, dur: 0.3, time: 0.5 },
-                        { freq: 659, dur: 0.2, time: 0.9 },
-                        { freq: 880, dur: 0.3, time: 1.2 },
-                        { freq: 784, dur: 0.2, time: 1.6 },
-                        { freq: 659, dur: 0.2, time: 1.9 },
-                        { freq: 523, dur: 0.4, time: 2.2 }
-                    ];
-                    
-                    notes.forEach(note => {
-                        const osc = audioContext.createOscillator();
-                        const gain = audioContext.createGain();
-                        osc.connect(gain);
-                        gain.connect(audioContext.destination);
-                        
-                        osc.frequency.value = note.freq;
-                        osc.type = 'sine';
-                        gain.gain.setValueAtTime(0.04, now + note.time);
-                        gain.gain.exponentialRampToValueAtTime(0.01, now + note.time + note.dur);
-                        
-                        osc.start(now + note.time);
-                        osc.stop(now + note.time + note.dur);
-                    });
-                    
-                    if (!state.gameOver && state.soundOn) {
-                        bgMusic = setTimeout(() => playMelody(), 3000);
-                    }
-                }
-                
-                setTimeout(playMelody, 500);
-            } catch(e) {
-                console.log('Фоновая музыка недоступна');
-            }
         }
         
         // ==================== ЗВУКИ ====================
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+        
         function playSound(type) {
             if (!state.soundOn || !audioContext) return;
-            
             try {
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-                
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-                
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
                 const now = audioContext.currentTime;
                 
                 switch(type) {
-                    case 'correct':
-                        oscillator.frequency.setValueAtTime(800, now);
-                        oscillator.type = 'sine';
-                        gainNode.gain.setValueAtTime(0.2, now);
-                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-                        oscillator.start(now);
-                        oscillator.stop(now + 0.15);
+                    case 'shoot':
+                        osc.frequency.setValueAtTime(800, now);
+                        osc.type = 'square';
+                        gain.gain.setValueAtTime(0.06, now);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.04);
+                        osc.start(now);
+                        osc.stop(now + 0.04);
+                        break;
+                    case 'hit':
+                        [600, 800, 1000].forEach((f, i) => {
+                            const o = audioContext.createOscillator();
+                            const g = audioContext.createGain();
+                            o.connect(g);
+                            g.connect(audioContext.destination);
+                            o.frequency.value = f;
+                            o.type = 'sine';
+                            g.gain.setValueAtTime(0.08, now + i * 0.04);
+                            g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.04 + 0.04);
+                            o.start(now + i * 0.04);
+                            o.stop(now + i * 0.04 + 0.04);
+                        });
+                        break;
+                    case 'explode':
+                        osc.frequency.setValueAtTime(100, now);
+                        osc.type = 'sawtooth';
+                        gain.gain.setValueAtTime(0.15, now);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                        osc.start(now);
+                        osc.stop(now + 0.3);
                         break;
                     case 'wrong':
-                        oscillator.frequency.setValueAtTime(200, now);
-                        oscillator.type = 'sawtooth';
-                        gainNode.gain.setValueAtTime(0.15, now);
-                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-                        oscillator.start(now);
-                        oscillator.stop(now + 0.3);
+                        osc.frequency.setValueAtTime(200, now);
+                        osc.type = 'sawtooth';
+                        gain.gain.setValueAtTime(0.08, now);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                        osc.start(now);
+                        osc.stop(now + 0.15);
                         break;
                     case 'levelup':
-                        [523, 659, 784, 1046].forEach((freq, i) => {
-                            const osc = audioContext.createOscillator();
-                            const gain = audioContext.createGain();
-                            osc.connect(gain);
-                            gain.connect(audioContext.destination);
-                            osc.frequency.value = freq;
-                            osc.type = 'sine';
-                            gain.gain.setValueAtTime(0.12, now + i * 0.12);
-                            gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.12 + 0.12);
-                            osc.start(now + i * 0.12);
-                            osc.stop(now + i * 0.12 + 0.12);
+                        [523, 659, 784].forEach((f, i) => {
+                            const o = audioContext.createOscillator();
+                            const g = audioContext.createGain();
+                            o.connect(g);
+                            g.connect(audioContext.destination);
+                            o.frequency.value = f;
+                            o.type = 'sine';
+                            g.gain.setValueAtTime(0.08, now + i * 0.08);
+                            g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.08 + 0.08);
+                            o.start(now + i * 0.08);
+                            o.stop(now + i * 0.08 + 0.08);
                         });
                         break;
                     case 'bonus':
-                        oscillator.frequency.setValueAtTime(1000, now);
-                        oscillator.type = 'sine';
-                        gainNode.gain.setValueAtTime(0.2, now);
-                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-                        oscillator.start(now);
-                        oscillator.stop(now + 0.2);
+                        osc.frequency.setValueAtTime(1000, now);
+                        osc.type = 'sine';
+                        gain.gain.setValueAtTime(0.12, now);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+                        osc.start(now);
+                        osc.stop(now + 0.12);
                         break;
                     case 'gameover':
-                        oscillator.frequency.setValueAtTime(400, now);
-                        oscillator.type = 'sawtooth';
-                        gainNode.gain.setValueAtTime(0.15, now);
-                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
-                        oscillator.start(now);
-                        oscillator.stop(now + 0.5);
-                        break;
-                    case 'powerup':
-                        oscillator.frequency.setValueAtTime(600, now);
-                        oscillator.type = 'sine';
-                        gainNode.gain.setValueAtTime(0.2, now);
-                        oscillator.frequency.setValueAtTime(900, now + 0.1);
-                        oscillator.frequency.setValueAtTime(1200, now + 0.2);
-                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
-                        oscillator.start(now);
-                        oscillator.stop(now + 0.4);
-                        break;
-                    case 'shield':
-                        oscillator.frequency.setValueAtTime(500, now);
-                        oscillator.type = 'square';
-                        gainNode.gain.setValueAtTime(0.15, now);
-                        oscillator.frequency.setValueAtTime(800, now + 0.1);
-                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-                        oscillator.start(now);
-                        oscillator.stop(now + 0.3);
-                        break;
-                    case 'life':
-                        oscillator.frequency.setValueAtTime(300, now);
-                        oscillator.type = 'sine';
-                        gainNode.gain.setValueAtTime(0.2, now);
-                        oscillator.frequency.setValueAtTime(500, now + 0.1);
-                        oscillator.frequency.setValueAtTime(700, now + 0.2);
-                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
-                        oscillator.start(now);
-                        oscillator.stop(now + 0.4);
+                        osc.frequency.setValueAtTime(300, now);
+                        osc.type = 'sawtooth';
+                        gain.gain.setValueAtTime(0.1, now);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                        osc.start(now);
+                        osc.stop(now + 0.4);
                         break;
                 }
-            } catch(e) {
-                console.log('Ошибка звука');
-            }
+            } catch(e) {}
         }
         
-        // ==================== ВИБРАЦИЯ ====================
-        function vibrate(duration = 50) {
-            if (navigator.vibrate) {
-                navigator.vibrate(duration);
-            }
+        function vibrate(duration = 20) {
+            if (navigator.vibrate) navigator.vibrate(duration);
         }
         
-        // ==================== DOM УПРАВЛЕНИЕ ====================
+        // ==================== DOM ====================
         function $(id) { return document.getElementById(id); }
-        function getGameArea() { return $('gameArea'); }
-        function getStar() { return document.querySelector('.star'); }
-        function getBonus() { return document.querySelector('.bonus'); }
+        function getField() { return $('gameField'); }
         
         // ==================== УПРАВЛЕНИЕ ====================
         function toggleSound() {
             state.soundOn = !state.soundOn;
             $('soundBtn').textContent = state.soundOn ? '🔊' : '🔇';
-            $('soundBtn').classList.toggle('active', !state.soundOn);
-            
-            if (state.soundOn) {
-                initBackgroundMusic();
-            } else if (bgMusic) {
-                clearTimeout(bgMusic);
-                bgMusic = null;
-            }
+            if (state.soundOn) initAudio();
         }
         
         function togglePause() {
             if (state.gameOver) return;
-            
             state.isPaused = !state.isPaused;
             $('pauseOverlay').classList.toggle('active', state.isPaused);
-            
-            if (state.isPaused) {
-                stopTimers();
-                $('pauseBtn').textContent = '▶️';
-                if (bgMusic) { clearTimeout(bgMusic); bgMusic = null; }
-            } else {
-                $('pauseBtn').textContent = '⏸';
-                startTimers();
-                if (state.soundOn) initBackgroundMusic();
-                const star = getStar();
-                if (star) star.classList.remove('star-hidden');
-            }
+            if (state.isPaused) { stopTimers(); } else { startTimers(); }
         }
         
         function restartGame() {
@@ -1423,7 +1094,6 @@
             startGame();
         }
         
-        // ==================== МЕНЮ ====================
         function openMenu() {
             $('menuScore').textContent = state.score;
             $('menuCoins').textContent = state.coins;
@@ -1431,20 +1101,41 @@
             $('menuOverlay').classList.add('active');
             if (!state.isPaused && !state.gameOver) togglePause();
         }
+        function closeMenu() { $('menuOverlay').classList.remove('active'); }
         
-        function closeMenu() {
-            $('menuOverlay').classList.remove('active');
+        function openShop() {
+            $('shopOverlay').classList.add('active');
+            updateShopUI();
         }
+        function closeShop() { $('shopOverlay').classList.remove('active'); }
+        
+        function showLeaderboard() {
+            const scores = JSON.parse(localStorage.getItem('highScores') || '[]');
+            const list = $('leaderboardList');
+            if (scores.length === 0) {
+                list.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.2);padding:20px;">Пока нет рекордов</div>';
+            } else {
+                list.innerHTML = scores.slice(0, 10).map((s, i) => {
+                    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
+                    return `
+                        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.03);">
+                            <span style="color:${i < 3 ? 'var(--accent)' : 'white'};">${medal}</span>
+                            <span style="color:white;flex:1;margin-left:8px;font-size:12px;">Игрок</span>
+                            <span style="color:var(--accent);font-weight:700;font-size:12px;">${s.score}⭐</span>
+                            <span style="color:rgba(255,255,255,0.2);font-size:10px;margin-left:6px;">Ур.${s.level}</span>
+                        </div>
+                    `;
+                }).join('');
+            }
+            $('leaderboardOverlay').classList.add('active');
+        }
+        function hideLeaderboard() { $('leaderboardOverlay').classList.remove('active'); }
         
         // ==================== ТАЙМЕРЫ ====================
         function stopTimers() {
-            Object.values(gameTimers).forEach(timer => {
-                if (timer) {
-                    clearInterval(timer);
-                    clearTimeout(timer);
-                }
-            });
-            gameTimers = { game: null, star: null, bonus: null, combo: null, powerup: null };
+            Object.values(gameTimers).forEach(t => { if (t) { clearInterval(t); clearTimeout(t); } });
+            gameTimers = { game: null, spawn: null, comet: null, combo: null, powerup: null, shoot: null };
+            if (shipAnimId) { cancelAnimationFrame(shipAnimId); shipAnimId = null; }
         }
         
         function startTimers() {
@@ -1454,557 +1145,497 @@
                 if (!state.isPaused && !state.gameOver) {
                     state.timeLeft--;
                     updateTimer();
-                    
-                    if (state.timeLeft <= 0) {
-                        endLevel();
-                    }
+                    if (state.timeLeft <= 0) endLevel();
                 }
             }, 1000);
             
-            moveStarTimer();
+            gameTimers.spawn = setInterval(() => {
+                if (!state.isPaused && !state.gameOver) spawnStar();
+            }, CONFIG.starSpawnInterval);
+            
+            gameTimers.comet = setInterval(() => {
+                if (!state.isPaused && !state.gameOver) spawnComet();
+            }, CONFIG.cometSpawnInterval);
+            
+            // Автоматическая стрельба
+            startAutoShoot();
         }
         
-        function moveStarTimer() {
-            if (gameTimers.star) clearInterval(gameTimers.star);
+        function startAutoShoot() {
+            const shipData = SHIPS[state.ship.type];
+            const fireRate = shipData.fireRate / (state.ship.speed || 1);
             
-            let interval = Math.max(CONFIG.speed.min, CONFIG.speed.max - state.level * 100);
-            
-            // Ускорение если активен буст
-            if (state.activePowerups.speedBoost) {
-                interval = Math.max(200, interval * 0.6);
-            }
-            
-            gameTimers.star = setInterval(() => {
-                if (!state.isPaused && !state.gameOver) {
-                    moveStar();
+            gameTimers.shoot = setInterval(() => {
+                if (!state.isPaused && !state.gameOver && state.ship.y > 0) {
+                    shoot();
                 }
-            }, interval);
+            }, fireRate);
         }
         
-        // ==================== ЖИЗНИ ====================
-        function updateLives() {
-            const container = $('livesContainer');
-            const hearts = container.querySelectorAll('.life-icon');
+        // ==================== КОРАБЛЬ ====================
+        function initShip() {
+            const field = getField();
+            const rect = field.getBoundingClientRect();
             
-            hearts.forEach((heart, index) => {
-                heart.classList.toggle('lost', index >= state.lives);
+            state.ship.x = rect.width / 2 - 30;
+            state.ship.y = rect.height - 80;
+            state.ship.targetX = state.ship.x;
+            state.ship.targetY = state.ship.y;
+            
+            updateShipVisual();
+            
+            // Управление касанием/мышью
+            field.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const rect = field.getBoundingClientRect();
+                const x = touch.clientX - rect.left - 30;
+                const y = touch.clientY - rect.top - 30;
+                moveShip(x, y);
             });
+            
+            field.addEventListener('mousemove', (e) => {
+                const rect = field.getBoundingClientRect();
+                const x = e.clientX - rect.left - 30;
+                const y = e.clientY - rect.top - 30;
+                moveShip(x, y);
+            });
+            
+            // Анимация движения
+            animateShip();
         }
         
-        function loseLife() {
-            state.lives--;
-            updateLives();
-            vibrate(100);
+        function moveShip(x, y) {
+            const field = getField();
+            const rect = field.getBoundingClientRect();
             
-            if (state.lives <= 0) {
-                endGame();
+            state.ship.targetX = Math.max(0, Math.min(x, rect.width - 60));
+            state.ship.targetY = Math.max(0, Math.min(y, rect.height - 60));
+        }
+        
+        function animateShip() {
+            const dx = state.ship.targetX - state.ship.x;
+            const dy = state.ship.targetY - state.ship.y;
+            
+            state.ship.x += dx * 0.15;
+            state.ship.y += dy * 0.15;
+            
+            const ship = $('ship');
+            ship.style.left = state.ship.x + 'px';
+            ship.style.top = state.ship.y + 'px';
+            
+            // Поворот в сторону движения
+            if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
+                const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+                ship.querySelector('.ship-body').style.transform = `rotate(${angle + 90}deg)`;
+            }
+            
+            shipAnimId = requestAnimationFrame(animateShip);
+        }
+        
+        function updateShipVisual() {
+            const shipData = SHIPS[state.ship.type];
+            const emoji = $('shipEmoji');
+            emoji.textContent = shipData.emoji;
+            
+            // Обновляем параметры корабля
+            state.ship.damage = shipData.damage;
+            state.ship.bullets = shipData.bullets;
+            state.ship.fireRate = shipData.fireRate;
+            state.ship.speed = shipData.speed;
+            
+            // Обновляем скорострельность
+            if (gameTimers.shoot) {
+                clearInterval(gameTimers.shoot);
+                startAutoShoot();
             }
         }
         
-        function addLife() {
-            state.lives = Math.min(state.lives + 1, CONFIG.maxLives);
-            updateLives();
-            playSound('life');
-            showComboText('❤️ +1 жизнь!', '#FF6B6B');
-        }
-        
-        // ==================== НАЧАЛО ИГРЫ ====================
-        function startGame() {
-            stopTimers();
+        // ==================== СТРЕЛЬБА ====================
+        function shoot() {
+            if (state.isPaused || state.gameOver) return;
             
-            state.score = 0;
-            state.level = 1;
-            state.timeLeft = CONFIG.baseLevelTime;
-            state.lives = CONFIG.maxLives;
-            state.combo = 0;
-            state.maxCombo = 0;
-            state.isPaused = false;
-            state.gameOver = false;
-            state.starClickable = true;
-            state.bonusActive = false;
-            state.activePowerups = {};
-            state.gamesPlayed++;
+            const field = getField();
+            const shipData = SHIPS[state.ship.type];
+            const count = shipData.bullets;
+            const spread = count > 1 ? 20 : 0;
             
-            $('gameOverOverlay').classList.remove('active');
-            $('pauseOverlay').classList.remove('active');
-            $('leaderboardOverlay').classList.remove('active');
-            $('menuOverlay').classList.remove('active');
-            $('pauseBtn').textContent = '⏸';
-            
-            clearGameField();
-            
-            updateUI();
-            updateTimer();
-            updateLives();
-            updateProgress();
-            
-            if (state.gamesPlayed >= 3 && !localStorage.getItem('isAdFree')) {
-                state.gamesPlayed = 0;
-                showInterstitialAd();
+            for (let i = 0; i < count; i++) {
+                const offset = count > 1 ? (i - (count-1)/2) * spread : 0;
+                createBullet(state.ship.x + 30, state.ship.y, offset);
             }
             
-            if (!localStorage.getItem('isAdFree')) {
-                $('adBanner').classList.add('active');
-            }
-            
-            createStar();
-            startTimers();
-            
-            if (state.soundOn) {
-                initBackgroundMusic();
-                setTimeout(() => playSound('levelup'), 200);
-            }
-            
-            saveGameStats();
+            playSound('shoot');
+            state.ship.lastShot = Date.now();
         }
         
-        function clearGameField() {
-            document.querySelectorAll('.star, .bonus, .particle').forEach(el => el.remove());
+        function createBullet(x, y, offset = 0) {
+            const field = getField();
+            const bullet = document.createElement('div');
+            bullet.className = 'bullet';
+            const emoji = document.createElement('span');
+            emoji.className = 'bullet-emoji';
+            emoji.textContent = '⚡';
+            bullet.appendChild(emoji);
+            bullet.style.left = (x + offset) + 'px';
+            bullet.style.top = y + 'px';
+            bullet.style.setProperty('--tx', offset + 'px');
+            field.appendChild(bullet);
+            
+            // Проверка попаданий
+            const bulletId = setTimeout(() => {
+                bullet.remove();
+                checkHit(x + offset, y);
+            }, 100);
+            
+            setTimeout(() => {
+                if (bullet.parentNode) bullet.remove();
+                clearTimeout(bulletId);
+            }, 400);
         }
         
-        // ==================== СОЗДАНИЕ ЗВЕЗДЫ ====================
-        function createStar() {
-            const gameArea = getGameArea();
-            const oldStar = getStar();
-            if (oldStar) oldStar.remove();
+        function checkHit(x, y) {
+            // Проверка попадания по звездам
+            for (let i = stars.length - 1; i >= 0; i--) {
+                const star = stars[i];
+                const el = star.element;
+                const rect = el.getBoundingClientRect();
+                const fieldRect = getField().getBoundingClientRect();
+                const sx = rect.left - fieldRect.left + rect.width/2;
+                const sy = rect.top - fieldRect.top + rect.height/2;
+                const dist = Math.sqrt((sx - x)**2 + (sy - y)**2);
+                
+                if (dist < 40) {
+                    hitStar(star);
+                    return;
+                }
+            }
+            
+            // Проверка попадания по кометам
+            for (let i = comets.length - 1; i >= 0; i--) {
+                const comet = comets[i];
+                const el = comet.element;
+                const rect = el.getBoundingClientRect();
+                const fieldRect = getField().getBoundingClientRect();
+                const cx = rect.left - fieldRect.left + rect.width/2;
+                const cy = rect.top - fieldRect.top + rect.height/2;
+                const dist = Math.sqrt((cx - x)**2 + (cy - y)**2);
+                
+                if (dist < 50) {
+                    hitComet(comet);
+                    return;
+                }
+            }
+        }
+        
+        // ==================== ЗВЕЗДЫ ====================
+        function spawnStar() {
+            if (stars.length >= CONFIG.maxStars) return;
+            
+            const field = getField();
+            const rect = field.getBoundingClientRect();
             
             const star = document.createElement('div');
-            star.className = 'star good';
+            star.className = 'target-star';
             
-            state.isBadStar = state.level >= 3 && Math.random() * 100 <= state.level * 5;
+            const isBad = state.level >= 3 && Math.random() * 100 <= state.level * 2;
             
             const emoji = document.createElement('span');
             emoji.className = 'star-emoji';
-            emoji.textContent = state.isBadStar ? '💀' : '⭐️';
-            emoji.style.fontSize = Math.max(CONFIG.starSizes.min, CONFIG.starSizes.max - state.level * 2) + 'px';
+            emoji.textContent = isBad ? '💀' : '⭐️';
             star.appendChild(emoji);
             
-            if (!state.isBadStar) {
-                const ring = document.createElement('div');
-                ring.className = 'star-ring';
-                star.appendChild(ring);
-            }
+            if (isBad) star.classList.add('bad');
             
-            if (state.isBadStar) {
-                star.classList.remove('good');
-                star.classList.add('bad');
-            }
+            const x = Math.random() * (rect.width - 50) + 25;
+            const y = Math.random() * (rect.height - 60) + 30;
+            star.style.left = x + 'px';
+            star.style.top = y + 'px';
             
-            const pos = getRandomPosition(star);
-            star.style.left = pos.x + 'px';
-            star.style.top = pos.y + 'px';
+            field.appendChild(star);
             
-            const clickHandler = (e) => {
-                e.preventDefault();
-                handleStarClick();
-            };
-            
-            star.addEventListener('click', clickHandler);
-            star.addEventListener('touchstart', clickHandler);
-            
-            gameArea.appendChild(star);
-            state.starClickable = true;
-        }
-        
-        function getRandomPosition(element) {
-            const gameArea = getGameArea();
-            const areaWidth = gameArea.clientWidth;
-            const areaHeight = gameArea.clientHeight;
-            
-            const padding = 60;
-            const topOffset = 140;
-            
-            const x = Math.random() * (areaWidth - padding * 2) + padding;
-            const y = Math.random() * (areaHeight - topOffset - padding * 2) + topOffset;
-            
-            return { x, y };
-        }
-        
-        function moveStar() {
-            const star = getStar();
-            if (!star || state.gameOver) return;
-            
-            if (state.isPaused) {
-                star.style.opacity = '0.3';
-                return;
-            }
-            
-            star.style.opacity = '1';
-            
-            state.isBadStar = state.level >= 3 && Math.random() * 100 <= state.level * 5;
-            
-            const emoji = star.querySelector('.star-emoji');
-            emoji.textContent = state.isBadStar ? '💀' : '⭐️';
-            
-            if (state.isBadStar) {
-                star.classList.remove('good');
-                star.classList.add('bad');
-            } else {
-                star.classList.remove('bad');
-                star.classList.add('good');
-            }
-            
-            const pos = getRandomPosition(star);
-            star.style.transition = 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
-            star.style.left = pos.x + 'px';
-            star.style.top = pos.y + 'px';
-            
-            star.style.transform = 'scale(0.5)';
-            requestAnimationFrame(() => {
-                star.style.transform = 'scale(1)';
+            stars.push({
+                element: star,
+                isBad: isBad,
+                x: x,
+                y: y,
+                speedX: (Math.random() - 0.5) * 0.5,
+                speedY: (Math.random() - 0.5) * 0.5
             });
-            
-            state.starClickable = true;
         }
         
-        // ==================== ОБРАБОТКА НАЖАТИЯ ====================
-        function handleStarClick() {
-            if (state.isPaused || state.gameOver || !state.starClickable) return;
+        function hitStar(star) {
+            const el = star.element;
+            createExplosion(el);
             
-            const star = getStar();
-            if (!star) return;
-            
-            state.starClickable = false;
-            
-            // Проверка щита
-            if (state.isBadStar && state.activePowerups.shield) {
-                state.activePowerups.shield = false;
-                showComboText('🛡️ Щит активирован!', '#4CAF50');
-                playSound('shield');
-                createParticles(star, '#4CAF50', 25);
-                vibrate(30);
-                state.starClickable = true;
-                setTimeout(() => moveStar(), 300);
-                return;
-            }
-            
-            if (state.isBadStar) {
-                state.score = Math.max(0, state.score - 2);
+            if (star.isBad) {
+                state.score = Math.max(0, state.score - 1);
                 state.combo = 0;
-                showComboText('💥 Промах! -2', '#ff4444');
+                showComboText('💀 -1', '#ff4444');
                 playSound('wrong');
-                createParticles(star, '#ff4444', 20);
-                vibrate(100);
-                
-                star.classList.add('shake');
-                setTimeout(() => {
-                    star.classList.remove('shake');
-                    state.starClickable = true;
-                }, 300);
-                
                 loseLife();
             } else {
                 state.combo++;
                 if (state.combo > state.maxCombo) state.maxCombo = state.combo;
+                state.starsShot++;
                 
                 let bonus = 1;
-                let text = '⭐️ +' + bonus;
-                let color = '#FFD700';
+                if (state.combo >= 10) bonus = 5;
+                else if (state.combo >= 5) bonus = 3;
+                else if (state.combo >= 3) bonus = 2;
                 
-                if (state.combo >= 10) {
-                    bonus = 5;
-                    text = '🔥 МЕГА КОМБО! +5';
-                    color = '#FF0000';
-                } else if (state.combo >= 5) {
-                    bonus = 3;
-                    text = '⚡ СУПЕР КОМБО! +3';
-                    color = '#FF6B00';
-                } else if (state.combo >= 3) {
-                    bonus = 2;
-                    text = '⭐️ КОМБО! +2';
-                    color = '#FFD700';
-                }
-                
-                // Двойные очки
                 if (state.activePowerups.double) bonus *= 2;
-                
-                // Ускорение дает +2 бонус
-                if (state.activePowerups.speedBoost) bonus += 2;
+                if (state.premium) bonus = Math.floor(bonus * 1.5);
                 
                 state.score += bonus;
-                
-                showComboText(text, color);
-                playSound('correct');
-                createParticles(star, '#FFD700', 25);
-                vibrate(30);
-                
                 state.totalScore += bonus;
                 state.coins += bonus;
                 localStorage.setItem('coins', state.coins);
                 
-                // Проверка достижений
-                checkAchievements();
+                showComboText(`⭐️ +${bonus}`, '#FFD700');
+                playSound('hit');
+                vibrate(15);
                 
-                // Спавн бонуса
                 if (Math.random() * 100 <= CONFIG.bonusChance * 100 && !state.bonusActive) {
-                    spawnBonus();
-                }
-                
-                // Магнит - автоматический сбор бонусов
-                if (state.activePowerups.magnet && !state.bonusActive) {
-                    setTimeout(() => {
-                        if (!state.bonusActive) spawnBonus();
-                    }, 500);
+                    spawnBonus(el);
                 }
             }
             
+            el.remove();
+            stars = stars.filter(s => s !== star);
             updateUI();
             updateProgress();
+            checkAchievements();
+        }
+        
+        // ==================== КОМЕТЫ ====================
+        function spawnComet() {
+            if (comets.length >= CONFIG.maxComets) return;
             
+            const field = getField();
+            const rect = field.getBoundingClientRect();
+            
+            const comet = document.createElement('div');
+            comet.className = 'comet';
+            
+            const body = document.createElement('div');
+            body.className = 'comet-body';
+            
+            const emoji = document.createElement('span');
+            emoji.className = 'comet-emoji';
+            emoji.textContent = '☄️';
+            body.appendChild(emoji);
+            
+            const tail = document.createElement('div');
+            tail.className = 'comet-tail';
+            body.appendChild(tail);
+            
+            comet.appendChild(body);
+            
+            const x = Math.random() * (rect.width - 60) + 30;
+            const duration = 3000 + Math.random() * 2000;
+            comet.style.left = x + 'px';
+            comet.style.top = '-50px';
+            comet.style.animationDuration = (duration / 1000) + 's';
+            
+            field.appendChild(comet);
+            
+            const cometData = {
+                element: comet,
+                x: x,
+                y: -50,
+                duration: duration,
+                startTime: Date.now(),
+                health: state.level >= 5 ? 2 : 1
+            };
+            
+            comets.push(cometData);
+            
+            // Автоматическое удаление
             setTimeout(() => {
-                if (!state.gameOver && !state.isPaused) {
-                    moveStar();
+                if (comet.parentNode) {
+                    comet.remove();
+                    comets = comets.filter(c => c !== cometData);
+                    // Комета достигла низа - потеря жизни
+                    if (!state.gameOver && !state.isPaused) {
+                        loseLife();
+                        showComboText('💥 Комета! -1 жизнь', '#ff4444');
+                        playSound('explode');
+                    }
                 }
-            }, 200);
+            }, duration + 1000);
+        }
+        
+        function hitComet(comet) {
+            comet.health--;
+            
+            if (comet.health <= 0) {
+                createExplosion(comet.element);
+                state.cometsDestroyed++;
+                state.score += 5;
+                state.coins += 5;
+                localStorage.setItem('coins', state.coins);
+                showComboText('☄️ +5 очков!', '#FF6B00');
+                playSound('explode');
+                vibrate(30);
+                comet.element.remove();
+                comets = comets.filter(c => c !== comet);
+                updateUI();
+                updateProgress();
+            } else {
+                // Визуальный эффект попадания по комете
+                comet.element.style.transform = 'scale(0.8)';
+                setTimeout(() => {
+                    comet.element.style.transform = 'scale(1)';
+                }, 200);
+                playSound('hit');
+            }
+        }
+        
+        // ==================== ВЗРЫВЫ ====================
+        function createExplosion(element) {
+            const field = getField();
+            const rect = element.getBoundingClientRect();
+            const fieldRect = field.getBoundingClientRect();
+            
+            const explosion = document.createElement('div');
+            explosion.className = 'explosion';
+            explosion.textContent = '💥';
+            explosion.style.fontSize = '35px';
+            explosion.style.left = (rect.left - fieldRect.left + rect.width/2 - 20) + 'px';
+            explosion.style.top = (rect.top - fieldRect.top + rect.height/2 - 20) + 'px';
+            field.appendChild(explosion);
+            
+            // Частицы
+            for (let i = 0; i < 15; i++) {
+                const p = document.createElement('div');
+                p.style.cssText = `
+                    position: absolute;
+                    pointer-events: none;
+                    z-index: 3;
+                    font-size: ${Math.random() * 15 + 8}px;
+                    left: ${rect.left - fieldRect.left + rect.width/2}px;
+                    top: ${rect.top - fieldRect.top + rect.height/2}px;
+                    animation: particleFly 0.6s ease-out forwards;
+                `;
+                p.textContent = ['✨', '⭐️', '🌟', '💫', '🔥'][Math.floor(Math.random() * 5)];
+                const angle = Math.random() * Math.PI * 2;
+                const dist = Math.random() * 80 + 20;
+                p.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+                p.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+                field.appendChild(p);
+                setTimeout(() => p.remove(), 600);
+            }
+            
+            setTimeout(() => explosion.remove(), 600);
         }
         
         // ==================== БОНУСЫ ====================
-        function spawnBonus() {
+        function spawnBonus(element) {
             if (state.bonusActive) return;
             
-            const gameArea = getGameArea();
-            const oldBonus = getBonus();
-            if (oldBonus) oldBonus.remove();
+            const field = getField();
+            const rect = element.getBoundingClientRect();
+            const fieldRect = field.getBoundingClientRect();
             
             const bonus = document.createElement('div');
-            bonus.className = 'bonus';
+            bonus.className = 'bonus-drop';
             
             const types = [
-                { 
-                    emoji: '❤️', 
-                    label: '+3 очка',
-                    color: '#FF6B6B',
-                    effect: () => { 
-                        state.score += 3; 
-                        state.coins += 3;
-                        showComboText('❤️ +3 очка!', '#FF6B6B');
-                        playSound('bonus');
-                        checkAchievements();
-                    }
-                },
-                { 
-                    emoji: '⏰', 
-                    label: '+5 сек',
-                    color: '#4ECDC4',
-                    effect: () => { 
-                        state.timeLeft += 5; 
-                        updateTimer();
-                        showComboText('⏰ +5 секунд!', '#4ECDC4');
-                        playSound('bonus');
-                    }
-                },
-                { 
-                    emoji: '🌟', 
-                    label: '+5 очков',
-                    color: '#FFD93D',
-                    effect: () => { 
-                        state.score += 5; 
-                        state.coins += 5;
-                        showComboText('🌟 +5 очков!', '#FFD93D');
-                        playSound('bonus');
-                        checkAchievements();
-                    }
-                },
-                { 
-                    emoji: '❤️‍🔥', 
-                    label: '+1 жизнь',
-                    color: '#FF1493',
-                    effect: () => { 
-                        addLife();
-                        showComboText('❤️‍🔥 +1 жизнь!', '#FF1493');
-                        playSound('life');
-                    }
-                },
-                { 
-                    emoji: '💎', 
-                    label: '+10 монет',
-                    color: '#00D4FF',
-                    effect: () => { 
-                        state.coins += 10;
-                        localStorage.setItem('coins', state.coins);
-                        showComboText('💎 +10 монет!', '#00D4FF');
-                        playSound('bonus');
-                    }
-                }
+                { emoji: '❤️', effect: () => { state.score += 3; state.coins += 3; showComboText('❤️ +3', '#FF6B6B'); } },
+                { emoji: '⏰', effect: () => { state.timeLeft += 5; updateTimer(); showComboText('⏰ +5сек', '#4ECDC4'); } },
+                { emoji: '🌟', effect: () => { state.score += 5; state.coins += 5; showComboText('🌟 +5', '#FFD93D'); } },
+                { emoji: '❤️‍🔥', effect: () => { state.lives = Math.min(state.lives + 1, CONFIG.maxLives); updateLives(); showComboText('❤️‍🔥 +1 жизнь', '#FF1493'); } }
             ];
             
             const type = types[Math.floor(Math.random() * types.length)];
-            
             const emojiSpan = document.createElement('span');
             emojiSpan.className = 'bonus-emoji';
             emojiSpan.textContent = type.emoji;
             bonus.appendChild(emojiSpan);
             
-            const label = document.createElement('span');
-            label.className = 'bonus-label';
-            label.textContent = type.label;
-            bonus.appendChild(label);
+            bonus.style.left = (rect.left - fieldRect.left + rect.width/2) + 'px';
+            bonus.style.top = '-20px';
             
-            // Таймер бонуса
-            const timerBar = document.createElement('div');
-            timerBar.className = 'bonus-timer';
-            const timerFill = document.createElement('div');
-            timerFill.className = 'timer-fill';
-            timerFill.style.background = type.color;
-            timerBar.appendChild(timerFill);
-            bonus.appendChild(timerBar);
-            
-            const pos = getRandomPosition(bonus);
-            bonus.style.left = pos.x + 'px';
-            bonus.style.top = pos.y + 'px';
-            
-            const collectBonus = (e) => {
-                e.preventDefault();
-                if (state.isPaused || state.gameOver) return;
-                
-                type.effect();
-                createParticles(bonus, type.color, 30);
-                bonus.remove();
-                state.bonusActive = false;
-                updateUI();
-                vibrate(50);
-            };
-            
-            bonus.addEventListener('click', collectBonus);
-            bonus.addEventListener('touchstart', collectBonus);
-            
-            gameArea.appendChild(bonus);
+            field.appendChild(bonus);
             state.bonusActive = true;
             
-            // Анимация таймера
-            requestAnimationFrame(() => {
-                timerFill.style.width = '0%';
-            });
+            // Сбор бонуса при касании кораблем
+            const checkCollect = setInterval(() => {
+                if (state.isPaused || state.gameOver) return;
+                const shipRect = $('ship').getBoundingClientRect();
+                const bonusRect = bonus.getBoundingClientRect();
+                if (shipRect.left < bonusRect.right && shipRect.right > bonusRect.left &&
+                    shipRect.top < bonusRect.bottom && shipRect.bottom > bonusRect.top) {
+                    type.effect();
+                    playSound('bonus');
+                    vibrate(20);
+                    bonus.remove();
+                    state.bonusActive = false;
+                    updateUI();
+                    clearInterval(checkCollect);
+                }
+            }, 50);
             
-            gameTimers.bonus = setTimeout(() => {
+            setTimeout(() => {
                 if (bonus.parentNode) {
                     bonus.remove();
                     state.bonusActive = false;
+                    clearInterval(checkCollect);
                 }
             }, 3000);
         }
         
-        // ==================== ЧАСТИЦЫ ====================
-        function createParticles(element, color, count) {
-            const gameArea = getGameArea();
-            const rect = element.getBoundingClientRect();
-            const gameRect = gameArea.getBoundingClientRect();
-            
-            const x = rect.left - gameRect.left + rect.width / 2;
-            const y = rect.top - gameRect.top + rect.height / 2;
-            
-            const emojis = ['✨', '⭐️', '🌟', '💫', '🎉'];
-            
-            for (let i = 0; i < count; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                
-                const emojiSpan = document.createElement('span');
-                emojiSpan.className = 'particle-emoji';
-                emojiSpan.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-                emojiSpan.style.fontSize = (Math.random() * 25 + 10) + 'px';
-                particle.appendChild(emojiSpan);
-                
-                particle.style.left = x + 'px';
-                particle.style.top = y + 'px';
-                particle.style.color = color;
-                
-                const angle = Math.random() * Math.PI * 2;
-                const distance = Math.random() * 200 + 50;
-                const dx = Math.cos(angle) * distance;
-                const dy = Math.sin(angle) * distance;
-                
-                particle.style.setProperty('--dx', dx + 'px');
-                particle.style.setProperty('--dy', dy + 'px');
-                
-                gameArea.appendChild(particle);
-                
-                setTimeout(() => {
-                    if (particle.parentNode) particle.remove();
-                }, 800);
-            }
+        // ==================== ЖИЗНИ ====================
+        function updateLives() {
+            const hearts = $('livesContainer').querySelectorAll('.life-icon');
+            hearts.forEach((h, i) => h.classList.toggle('lost', i >= state.lives));
         }
         
-        // ==================== ДОСТИЖЕНИЯ ====================
-        const ACHIEVEMENTS = {
-            first_star: { name: '🌟 Первая звезда', condition: () => state.score >= 10 },
-            combo_3: { name: '⚡ Комбо x3', condition: () => state.maxCombo >= 3 },
-            combo_5: { name: '🔥 Комбо x5', condition: () => state.maxCombo >= 5 },
-            combo_10: { name: '💥 Комбо x10', condition: () => state.maxCombo >= 10 },
-            level_5: { name: '📈 Уровень 5', condition: () => state.level >= 5 },
-            level_10: { name: '🌟 Уровень 10', condition: () => state.level >= 10 },
-            score_100: { name: '💎 100 очков', condition: () => state.score >= 100 },
-            score_500: { name: '👑 500 очков', condition: () => state.score >= 500 },
-            lives_3: { name: '❤️ 3 жизни', condition: () => state.lives === CONFIG.maxLives && state.level >= 3 },
-        };
-        
-        function checkAchievements() {
-            Object.keys(ACHIEVEMENTS).forEach(key => {
-                const ach = ACHIEVEMENTS[key];
-                if (ach.condition() && !localStorage.getItem('achievement_' + key)) {
-                    localStorage.setItem('achievement_' + key, 'true');
-                    showComboText('🏆 ' + ach.name, '#FFD700');
-                    playSound('levelup');
-                    state.coins += 5;
-                    localStorage.setItem('coins', state.coins);
-                    updateUI();
-                }
-            });
+        function loseLife() {
+            state.lives--;
+            updateLives();
+            vibrate(50);
+            if (state.lives <= 0) endGame();
         }
         
-        // ==================== КОМБО ТЕКСТ ====================
+        // ==================== КОМБО ====================
         function showComboText(text, color = '#FFD700') {
-            const comboElement = $('comboText');
-            comboElement.textContent = text;
-            comboElement.style.color = color;
-            comboElement.classList.add('visible');
-            
-            comboElement.style.animation = 'none';
-            comboElement.offsetHeight;
-            comboElement.style.animation = '';
-            
+            const el = $('comboText');
+            el.textContent = text;
+            el.style.color = color;
+            el.classList.add('visible');
+            el.style.animation = 'none';
+            el.offsetHeight;
+            el.style.animation = '';
             if (gameTimers.combo) clearTimeout(gameTimers.combo);
-            gameTimers.combo = setTimeout(() => {
-                comboElement.classList.remove('visible');
-            }, 1400);
+            gameTimers.combo = setTimeout(() => el.classList.remove('visible'), 1000);
         }
         
-        // ==================== ОБНОВЛЕНИЕ UI ====================
+        // ==================== UI ====================
         function updateUI() {
             $('levelNum').textContent = state.level;
             $('scoreNum').textContent = state.score;
             $('coinsNum').textContent = state.coins;
             $('shopCoins').textContent = state.coins;
-            $('comboInfo').textContent = state.combo > 1 ? '⚡ x' + state.combo : '';
-            
-            const best = getBestScore();
-            if (state.score > best) {
-                $('scoreInfo').style.color = '#FF6B6B';
-                setTimeout(() => {
-                    $('scoreInfo').style.color = '';
-                }, 500);
-            }
         }
         
         function updateTimer() {
-            const timerText = $('timerText');
-            const timerCircle = $('timerCircle');
-            
-            timerText.textContent = state.timeLeft;
-            
-            if (state.timeLeft < 3) {
-                timerText.classList.add('warning');
-                timerCircle.classList.add('warning');
+            const text = $('timerText');
+            const circle = $('timerCircle');
+            text.textContent = state.timeLeft;
+            if (state.timeLeft < 5) {
+                text.classList.add('warning');
+                circle.classList.add('warning');
             } else {
-                timerText.classList.remove('warning');
-                timerCircle.classList.remove('warning');
+                text.classList.remove('warning');
+                circle.classList.remove('warning');
             }
         }
         
         function updateProgress() {
             const progress = state.score / (state.level * CONFIG.levelUpScore);
             const percent = Math.min(100, progress * 100);
-            
             $('progressFill').style.width = percent + '%';
             $('progressLabel').textContent = Math.round(percent) + '%';
         }
@@ -2013,25 +1644,17 @@
         function endLevel() {
             if (state.score >= state.level * CONFIG.levelUpScore) {
                 state.level++;
-                state.timeLeft = CONFIG.baseLevelTime;
+                state.timeLeft = CONFIG.baseTime;
                 state.score = 0;
                 state.combo = 0;
-                
                 updateUI();
                 updateTimer();
                 updateProgress();
                 updateLives();
-                
                 playSound('levelup');
                 showComboText('🎉 УРОВЕНЬ ' + state.level + '!', '#4ECDC4');
-                vibrate(50);
-                
-                moveStarTimer();
-                
                 setTimeout(() => {
-                    if (!state.gameOver) {
-                        createStar();
-                    }
+                    if (!state.gameOver) startTimers();
                 }, 500);
             } else {
                 endGame();
@@ -2042,44 +1665,28 @@
             state.gameOver = true;
             stopTimers();
             
-            if (bgMusic) { clearTimeout(bgMusic); bgMusic = null; }
-            
-            const star = getStar();
-            if (star) star.remove();
-            
-            const bonus = getBonus();
-            if (bonus) bonus.remove();
+            document.querySelectorAll('.target-star, .comet, .bonus-drop, .bullet').forEach(el => el.remove());
+            stars = [];
+            comets = [];
+            bonuses = [];
+            bullets = [];
             
             updateLeaderboard(state.score);
             
             $('finalScore').textContent = '⭐️ Счёт: ' + state.score;
             $('finalLevel').textContent = '📊 Уровень: ' + state.level;
-            $('finalCombo').textContent = '⚡ Лучшее комбо: ' + state.maxCombo;
+            $('finalCombo').textContent = '⚡ Комбо: ' + state.maxCombo;
             $('bestScore').textContent = '🏆 Лучший: ' + getBestScore();
             $('gameOverOverlay').classList.add('active');
             
             playSound('gameover');
-            vibrate(200);
-            
-            if (window.Telegram?.WebApp) {
-                window.Telegram.WebApp.sendData(JSON.stringify({
-                    event: 'game_over',
-                    score: state.score,
-                    level: state.level,
-                    maxCombo: state.maxCombo
-                }));
-            }
+            vibrate(100);
         }
         
         // ==================== РЕКОРДЫ ====================
-        function updateLeaderboard(newScore) {
+        function updateLeaderboard(score) {
             let scores = JSON.parse(localStorage.getItem('highScores') || '[]');
-            scores.push({ 
-                score: newScore, 
-                level: state.level, 
-                combo: state.maxCombo,
-                date: new Date().toLocaleDateString('ru-RU')
-            });
+            scores.push({ score: score, level: state.level, combo: state.maxCombo });
             scores.sort((a, b) => b.score - a.score);
             scores = scores.slice(0, 10);
             localStorage.setItem('highScores', JSON.stringify(scores));
@@ -2090,89 +1697,121 @@
             return scores.length > 0 ? scores[0].score : 0;
         }
         
-        function showLeaderboard() {
-            const scores = JSON.parse(localStorage.getItem('highScores') || '[]');
-            const listElement = $('leaderboardList');
-            
-            if (scores.length === 0) {
-                listElement.innerHTML = '<div style="text-align: center; color: rgba(255,255,255,0.4); padding: 20px;">Пока нет рекордов</div>';
-            } else {
-                listElement.innerHTML = scores.map((s, i) => {
-                    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
-                    return `
-                        <div class="leaderboard-item">
-                            <span class="rank">${medal}</span>
-                            <span class="name">Игрок</span>
-                            <span class="score">${s.score}⭐</span>
-                            <span class="level">Ур.${s.level}</span>
-                            <span style="font-size: 10px; color: rgba(255,255,255,0.3);">⚡${s.combo || 0}</span>
-                        </div>
-                    `;
-                }).join('');
-            }
-            
-            $('leaderboardOverlay').classList.add('active');
-        }
-        
-        function hideLeaderboard() {
-            $('leaderboardOverlay').classList.remove('active');
-        }
-        
-        // ==================== МАГАЗИН ====================
-        const POWERUP_PRICES = {
-            shield: 50,
-            double: 80,
-            extraTime: 60,
-            magnet: 100,
-            extraLife: 40,
-            speedBoost: 120
-        };
-        
-        function openShop() {
-            $('shopOverlay').classList.add('active');
-            updateShopUI();
-        }
-        
-        function closeShop() {
-            $('shopOverlay').classList.remove('active');
-        }
-        
+        // ==================== МАГАЗИН КОРАБЛЕЙ ====================
         function updateShopUI() {
-            const prices = POWERUP_PRICES;
+            // Корабли
+            Object.keys(SHIPS).forEach(key => {
+                const el = $('ship' + key.charAt(0).toUpperCase() + key.slice(1) + 'Price');
+                if (el) {
+                    const ship = SHIPS[key];
+                    const owned = localStorage.getItem('ship_' + key) === 'true';
+                    const equipped = state.ship.type === key;
+                    
+                    if (equipped) {
+                        el.textContent = '✅ Используется';
+                        el.className = 'item-price equipped';
+                    } else if (owned) {
+                        el.textContent = '🔧 Надеть';
+                        el.className = 'item-price owned';
+                    } else {
+                        el.textContent = (ship.currency === 'real' ? ship.price + '₽' : ship.price + '⭐');
+                        el.className = 'item-price ' + (ship.currency === 'real' ? 'real' : 'coin');
+                    }
+                }
+            });
             
-            Object.keys(prices).forEach(key => {
+            // Усиления
+            Object.keys(POWERUP_PRICES).forEach(key => {
                 const el = $(key + 'Price');
                 if (el) {
                     const owned = localStorage.getItem('powerup_' + key) === 'true';
-                    const active = state.activePowerups[key];
-                    if (owned) {
-                        el.textContent = active ? '✅ Активен' : '✅ Владелец';
-                        el.className = 'item-price' + (active ? ' active' : ' owned');
-                    } else {
-                        el.textContent = prices[key] + '⭐';
-                        el.className = 'item-price';
-                    }
+                    el.textContent = owned ? '✅ Владелец' : POWERUP_PRICES[key] + '⭐';
+                    el.className = 'item-price ' + (owned ? 'owned' : 'coin');
                 }
             });
             
             $('shopCoins').textContent = state.coins;
         }
         
-        function getPowerupName(type) {
-            const names = {
-                shield: '🛡️ Щит',
-                double: '2️⃣ Двойные очки',
-                extraTime: '⏱️ +5 секунд',
-                magnet: '🧲 Магнит',
-                extraLife: '❤️ Доп. жизнь',
-                speedBoost: '🚀 Ускорение'
-            };
-            return names[type] || type;
+        function buyShip(type) {
+            const ship = SHIPS[type];
+            if (!ship) return;
+            
+            if (state.ship.type === type) {
+                alert('Этот корабль уже используется!');
+                return;
+            }
+            
+            if (localStorage.getItem('ship_' + type) === 'true') {
+                // Надеть корабль
+                state.ship.type = type;
+                localStorage.setItem('equippedShip', type);
+                updateShipVisual();
+                updateShopUI();
+                showComboText('🚀 ' + ship.name + ' готов!', '#FFD700');
+                return;
+            }
+            
+            // Покупка
+            if (ship.currency === 'real') {
+                buyRealShip(type);
+                return;
+            }
+            
+            if (state.coins < ship.price) {
+                alert('❌ Недостаточно монет! Нужно ' + ship.price + '⭐');
+                return;
+            }
+            
+            if (confirm('Купить ' + ship.name + ' за ' + ship.price + '⭐?')) {
+                state.coins -= ship.price;
+                localStorage.setItem('coins', state.coins);
+                localStorage.setItem('ship_' + type, 'true');
+                state.ship.type = type;
+                localStorage.setItem('equippedShip', type);
+                updateShipVisual();
+                updateShopUI();
+                updateUI();
+                playSound('powerup');
+                showComboText('🚀 ' + ship.name + ' куплен!', '#FFD700');
+            }
         }
+        
+        function buyRealShip(type) {
+            const ship = SHIPS[type];
+            const account = '40817810140101612217';
+            
+            if (confirm(
+                `🚀 ${ship.name}\n` +
+                `💎 Цена: ${ship.price}₽\n` +
+                `📊 Урон: +${ship.damage}\n` +
+                `🎯 Выстрелов: ${ship.bullets}\n` +
+                `⚡ Скорость: +${(ship.speed - 1) * 100}%\n\n` +
+                `🏦 Реквизиты:\n` +
+                `Счет: ${account}\n\n` +
+                `После оплаты нажмите "Готово"`
+            )) {
+                if (confirm('✅ Оплатили? Нажмите OK для активации')) {
+                    localStorage.setItem('ship_' + type, 'true');
+                    state.ship.type = type;
+                    localStorage.setItem('equippedShip', type);
+                    updateShipVisual();
+                    updateShopUI();
+                    playSound('powerup');
+                    showComboText('👑 ' + ship.name + ' активирован!', '#FFD700');
+                }
+            }
+        }
+        
+        // ==================== УСИЛЕНИЯ ====================
+        const POWERUP_PRICES = {
+            shield: 50,
+            double: 80,
+            extraTime: 60
+        };
         
         function buyPowerup(type) {
             if (localStorage.getItem('powerup_' + type) === 'true') {
-                // Если уже владелец, активируем
                 if (!state.activePowerups[type]) {
                     activatePowerup(type);
                     updateShopUI();
@@ -2194,190 +1833,208 @@
                 state.coins -= price;
                 localStorage.setItem('coins', state.coins);
                 localStorage.setItem('powerup_' + type, 'true');
-                
                 activatePowerup(type);
-                
                 updateShopUI();
                 playSound('powerup');
                 showComboText('✅ ' + getPowerupName(type) + ' активирован!', '#4CAF50');
             }
         }
         
+        function getPowerupName(type) {
+            const names = { shield: '🛡️ Щит', double: '2️⃣ Двойные очки', extraTime: '⏱️ +5 секунд' };
+            return names[type] || type;
+        }
+        
         function activatePowerup(type) {
             state.activePowerups[type] = true;
-            
             switch(type) {
-                case 'shield':
-                    // Щит активен до использования
-                    break;
+                case 'shield': break;
                 case 'double':
                     if (gameTimers.powerup) clearTimeout(gameTimers.powerup);
                     gameTimers.powerup = setTimeout(() => {
                         state.activePowerups.double = false;
-                        showComboText('⏱️ Двойные очки закончились', 'rgba(255,255,255,0.6)');
-                        updateShopUI();
-                    }, CONFIG.powerupDurations.double);
+                        showComboText('⏱️ Двойные очки закончились', 'rgba(255,255,255,0.3)');
+                    }, 10000);
                     break;
                 case 'extraTime':
                     state.timeLeft += 5;
                     updateTimer();
                     break;
-                case 'magnet':
-                    if (gameTimers.powerup) clearTimeout(gameTimers.powerup);
-                    gameTimers.powerup = setTimeout(() => {
-                        state.activePowerups.magnet = false;
-                        showComboText('⏱️ Магнит закончился', 'rgba(255,255,255,0.6)');
-                        updateShopUI();
-                    }, CONFIG.powerupDurations.magnet);
-                    // Автоматический сбор бонуса
-                    if (!state.bonusActive) {
-                        setTimeout(() => spawnBonus(), 300);
-                        setTimeout(() => {
-                            if (!state.bonusActive) spawnBonus();
-                        }, 1500);
-                    }
-                    break;
-                case 'extraLife':
-                    addLife();
-                    localStorage.setItem('powerup_' + type, 'false');
-                    break;
-                case 'speedBoost':
-                    // Ускорение постоянно активно
-                    moveStarTimer();
-                    break;
             }
-            
             updateShopUI();
         }
         
-        // ==================== РЕКЛАМА ====================
-        let adStats = {
-            impressions: parseInt(localStorage.getItem('adImpressions') || '0'),
-            clicks: parseInt(localStorage.getItem('adClicks') || '0'),
-            revenue: parseFloat(localStorage.getItem('adRevenue') || '0')
-        };
-        
-        function showInterstitialAd() {
-            adStats.impressions++;
-            saveAdStats();
-            console.log('📢 Показ рекламы');
+        // ==================== РЕАЛЬНЫЕ ПОКУПКИ ====================
+        function buyReal(type) {
+            const account = '40817810140101612217';
+            const products = {
+                coins500: { name: '500 монет', price: 99 },
+                coins1500: { name: '1500 монет', price: 249 }
+            };
+            const product = products[type];
+            if (!product) return;
+            
+            if (confirm(
+                `💎 ${product.name}\n` +
+                `💰 Цена: ${product.price}₽\n\n` +
+                `🏦 Реквизиты:\n` +
+                `Счет: ${account}\n\n` +
+                `После оплаты нажмите "Готово"`
+            )) {
+                if (confirm('✅ Оплатили? Нажмите OK для активации')) {
+                    const amount = type === 'coins500' ? 500 : 1500;
+                    state.coins += amount;
+                    localStorage.setItem('coins', state.coins);
+                    updateUI();
+                    updateShopUI();
+                    playSound('bonus');
+                    showComboText('💰 +' + amount + ' монет!', '#FFD700');
+                }
+            }
         }
         
+        // ==================== ДОСТИЖЕНИЯ ====================
+        const ACHIEVEMENTS = {
+            first_shot: { name: '🎯 Первый выстрел', condition: () => state.starsShot >= 1 },
+            combo_3: { name: '⚡ Комбо x3', condition: () => state.maxCombo >= 3 },
+            combo_5: { name: '🔥 Комбо x5', condition: () => state.maxCombo >= 5 },
+            combo_10: { name: '💥 Комбо x10', condition: () => state.maxCombo >= 10 },
+            level_5: { name: '📈 Уровень 5', condition: () => state.level >= 5 },
+            score_100: { name: '💎 100 очков', condition: () => state.score >= 100 },
+            comet_killer: { name: '☄️ Охотник на кометы', condition: () => state.cometsDestroyed >= 5 }
+        };
+        
+        function checkAchievements() {
+            Object.keys(ACHIEVEMENTS).forEach(key => {
+                const ach = ACHIEVEMENTS[key];
+                if (ach.condition() && !localStorage.getItem('achievement_' + key)) {
+                    localStorage.setItem('achievement_' + key, 'true');
+                    showComboText('🏆 ' + ach.name, '#FFD700');
+                    playSound('levelup');
+                    state.coins += 5;
+                    localStorage.setItem('coins', state.coins);
+                    updateUI();
+                }
+            });
+        }
+        
+        // ==================== РЕКЛАМА ====================
         function clickAd() {
-            adStats.clicks++;
-            adStats.revenue += 0.30;
-            saveAdStats();
             alert('📢 Спасибо за поддержку!');
         }
         
         function watchAdForBonus() {
-            adStats.impressions++;
-            adStats.revenue += 0.05;
-            saveAdStats();
-            
             state.score += 10;
             state.coins += 10;
             localStorage.setItem('coins', state.coins);
             updateUI();
             playSound('bonus');
-            
             $('gameOverOverlay').classList.remove('active');
             startGame();
         }
         
         function removeAds() {
-            if (confirm('💎 Убрать рекламу за 99₽?')) {
+            if (confirm('💎 Убрать рекламу за 99₽?\n\nСчет: 40817810140101612217')) {
                 localStorage.setItem('isAdFree', 'true');
                 $('adBanner').classList.remove('active');
                 alert('✅ Реклама отключена!');
             }
         }
         
-        function saveAdStats() {
-            localStorage.setItem('adImpressions', adStats.impressions);
-            localStorage.setItem('adClicks', adStats.clicks);
-            localStorage.setItem('adRevenue', adStats.revenue);
-        }
-        
-        function saveGameStats() {
-            const stats = {
-                gamesPlayed: state.gamesPlayed,
-                totalScore: state.totalScore,
-                lastPlayed: new Date().toISOString()
-            };
-            localStorage.setItem('gameStats', JSON.stringify(stats));
-        }
-        
-        // ==================== SHARING ====================
-        function shareGame() {
-            const text = `🎮 Играю в "Поймай звезду"! Мой рекорд: ${getBestScore()} очков! Попробуй и ты!`;
-            const url = window.location.href;
+        // ==================== СТАРТ ====================
+        function startGame() {
+            stopTimers();
             
-            if (navigator.share) {
-                navigator.share({ title: 'Поймай звезду', text: text, url: url }).catch(() => {});
-            } else if (navigator.clipboard) {
-                navigator.clipboard.writeText(text + ' ' + url)
-                    .then(() => alert('✅ Ссылка скопирована!'))
-                    .catch(() => alert(text));
-            } else {
-                alert(text + ' ' + url);
+            state.score = 0;
+            state.level = 1;
+            state.timeLeft = CONFIG.baseTime;
+            state.lives = CONFIG.maxLives;
+            state.combo = 0;
+            state.maxCombo = 0;
+            state.starsShot = 0;
+            state.cometsDestroyed = 0;
+            state.gameOver = false;
+            state.isPaused = false;
+            state.activePowerups = {};
+            state.bonusActive = false;
+            
+            $('gameOverOverlay').classList.remove('active');
+            $('pauseOverlay').classList.remove('active');
+            $('leaderboardOverlay').classList.remove('active');
+            $('menuOverlay').classList.remove('active');
+            
+            document.querySelectorAll('.target-star, .comet, .bonus-drop, .bullet, .explosion').forEach(el => el.remove());
+            stars = [];
+            comets = [];
+            bonuses = [];
+            bullets = [];
+            
+            // Инициализация корабля
+            initShip();
+            
+            updateUI();
+            updateTimer();
+            updateLives();
+            updateProgress();
+            
+            if (!localStorage.getItem('isAdFree')) $('adBanner').classList.add('active');
+            
+            initAudio();
+            startTimers();
+            if (state.soundOn) setTimeout(() => playSound('levelup'), 200);
+            
+            // Применяем премиум-бонусы
+            if (state.premium) {
+                showComboText('👑 Премиум активен!', '#FFD700');
             }
         }
         
         // ==================== ИНИЦИАЛИЗАЦИЯ ====================
         window.addEventListener('load', () => {
-            // Telegram
             if (window.Telegram?.WebApp) {
                 const tg = window.Telegram.WebApp;
                 tg.expand();
                 tg.ready();
-                if (tg.colorScheme === 'dark') {
-                    document.documentElement.style.setProperty('--bg-start', '#0a0a1a');
-                }
             }
             
-            // Фон
             initBackground();
+            initAudio();
             
-            // Звук
-            setTimeout(() => {
-                initBackgroundMusic();
-            }, 1000);
+            if (localStorage.getItem('isAdFree')) $('adBanner').classList.remove('active');
+            if (localStorage.getItem('premium') === 'true') state.premium = true;
             
-            // Реклама
-            if (localStorage.getItem('isAdFree')) {
-                $('adBanner').classList.remove('active');
+            // Инициализация кораблей
+            if (!localStorage.getItem('ship_initialized')) {
+                localStorage.setItem('ship_basic', 'true');
+                localStorage.setItem('equippedShip', 'basic');
+                localStorage.setItem('ship_initialized', 'true');
             }
             
-            // Инициализация усилений
             if (!localStorage.getItem('powerup_initialized')) {
-                ['shield', 'double', 'extraTime', 'magnet', 'extraLife', 'speedBoost'].forEach(key => {
+                ['shield', 'double', 'extraTime'].forEach(key => {
                     localStorage.setItem('powerup_' + key, 'false');
                 });
                 localStorage.setItem('powerup_initialized', 'true');
             }
             
-            // Запуск
+            state.ship.type = localStorage.getItem('equippedShip') || 'basic';
+            
             setTimeout(startGame, 300);
         });
         
-        // Предотвращение скролла
         document.addEventListener('touchmove', (e) => {
             if (e.target.closest('#gameArea')) e.preventDefault();
         }, { passive: false });
         
         document.addEventListener('contextmenu', (e) => e.preventDefault());
         
-        // Автопауза
         document.addEventListener('visibilitychange', () => {
-            if (document.hidden && !state.gameOver && !state.isPaused) {
-                togglePause();
-            }
+            if (document.hidden && !state.gameOver && !state.isPaused) togglePause();
         });
         
-        console.log('⭐️ Поймай звезду - Ultimate Edition v4.0');
-        console.log('🔥 Активный фон, меню, магазин, достижения и многое другое!');
-        console.log('💡 Совет: Собирайте комбо для больших очков!');
+        console.log('🚀 Космический стрелок - Deluxe Edition');
+        console.log('🎯 Автоматическая стрельба, кометы, прокачка корабля!');
+        console.log('💰 Реквизиты: 40817810140101612217');
     </script>
 </body>
 </html>
