@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>⭐️ Поймай звезду - Deluxe</title>
+    <title>⭐️ Поймай звезду - Ultimate</title>
     
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
@@ -26,6 +26,9 @@
             --bg-start: #0f0c29;
             --bg-mid: #302b63;
             --bg-end: #24243e;
+            --success: #4CAF50;
+            --danger: #ff4444;
+            --warning: #FF9800;
         }
         
         body {
@@ -46,7 +49,7 @@
             background: linear-gradient(135deg, var(--bg-start), var(--bg-mid), var(--bg-end));
         }
         
-        /* Динамический фон с частицами */
+        /* ==================== АКТИВНЫЙ ФОН ==================== */
         #bgCanvas {
             position: absolute;
             top: 0;
@@ -57,22 +60,41 @@
             pointer-events: none;
         }
         
-        /* Анимированные звезды фона */
-        .bg-star {
+        .nebula {
             position: absolute;
-            background: white;
             border-radius: 50%;
-            animation: twinkle var(--duration) ease-in-out infinite;
+            filter: blur(60px);
+            opacity: 0.3;
             z-index: 0;
             pointer-events: none;
+            animation: nebulaFloat 20s ease-in-out infinite;
         }
         
-        @keyframes twinkle {
-            0%, 100% { opacity: 0.2; transform: scale(0.8); }
-            50% { opacity: 1; transform: scale(1.2); }
+        @keyframes nebulaFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(50px, -30px) scale(1.1); }
+            50% { transform: translate(-30px, 50px) scale(0.9); }
+            75% { transform: translate(30px, 30px) scale(1.05); }
         }
         
-        /* Верхняя панель */
+        .shooting-star {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: white;
+            border-radius: 50%;
+            z-index: 0;
+            pointer-events: none;
+            animation: shootingStar 4s linear infinite;
+        }
+        
+        @keyframes shootingStar {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            70% { opacity: 1; }
+            100% { transform: translate(-300px, 300px) scale(0); opacity: 0; }
+        }
+        
+        /* ==================== ВЕРХНЯЯ ПАНЕЛЬ ==================== */
         #topBar {
             position: absolute;
             top: 10px;
@@ -83,7 +105,7 @@
             justify-content: space-between;
             align-items: center;
             z-index: 10;
-            background: rgba(0,0,0,0.6);
+            background: rgba(0,0,0,0.7);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border-radius: 20px;
@@ -132,6 +154,7 @@
             transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
             touch-action: manipulation;
             backdrop-filter: blur(10px);
+            position: relative;
         }
         
         .top-button:active {
@@ -139,12 +162,23 @@
             background: rgba(255,255,255,0.2);
         }
         
-        .top-button.active {
-            background: rgba(108, 60, 225, 0.4);
-            border-color: var(--primary);
+        .top-button .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--danger);
+            color: white;
+            font-size: 8px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
         }
         
-        /* Жизни */
+        /* ==================== ЖИЗНИ ==================== */
         #livesContainer {
             display: flex;
             gap: 4px;
@@ -158,14 +192,40 @@
         .life-icon {
             font-size: 16px;
             transition: all 0.3s;
+            cursor: default;
         }
         
         .life-icon.lost {
             opacity: 0.2;
             transform: scale(0.8);
+            animation: lifeLost 0.5s ease-out;
         }
         
-        /* Таймер */
+        @keyframes lifeLost {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.5; }
+            100% { transform: scale(0); opacity: 0; }
+        }
+        
+        /* ==================== МОНЕТЫ ==================== */
+        #coinsInfo {
+            color: var(--accent);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 12px;
+            background: rgba(255,215,0,0.1);
+            border-radius: 12px;
+            border: 1px solid rgba(255,215,0,0.2);
+            margin-right: 6px;
+        }
+        
+        #coinsInfo span {
+            font-weight: 700;
+        }
+        
+        /* ==================== ТАЙМЕР ==================== */
         #timerContainer {
             position: absolute;
             top: 80px;
@@ -230,7 +290,7 @@
             50% { transform: scale(1.1); }
         }
         
-        /* Звезда */
+        /* ==================== ЗВЕЗДА ==================== */
         .star {
             position: absolute;
             cursor: pointer;
@@ -250,6 +310,11 @@
             filter: drop-shadow(0 0 30px rgba(255,0,0,0.6));
         }
         
+        .star:active {
+            transform: scale(1.5) !important;
+            filter: drop-shadow(0 0 50px rgba(255,215,0,1)) !important;
+        }
+        
         @keyframes starFloat {
             0%, 100% { transform: translateY(0px) rotate(0deg); }
             50% { transform: translateY(-10px) rotate(10deg); }
@@ -263,10 +328,6 @@
         @keyframes starShake {
             0%, 100% { transform: rotate(-5deg); }
             50% { transform: rotate(5deg); }
-        }
-        
-        .star:active {
-            transform: scale(1.4) !important;
         }
         
         .star .star-emoji {
@@ -288,7 +349,7 @@
             100% { transform: scale(1.5); opacity: 0; }
         }
         
-        /* Бонусы улучшенные */
+        /* ==================== БОНУСЫ ==================== */
         .bonus {
             position: absolute;
             cursor: pointer;
@@ -300,7 +361,8 @@
         }
         
         .bonus:active {
-            transform: scale(1.3);
+            transform: scale(1.4) !important;
+            filter: drop-shadow(0 0 40px rgba(255,255,255,0.8)) !important;
         }
         
         .bonus .bonus-emoji {
@@ -328,7 +390,25 @@
             font-family: -apple-system, sans-serif;
         }
         
-        /* Частицы улучшенные */
+        .bonus .bonus-timer {
+            position: absolute;
+            bottom: -30px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .bonus .bonus-timer .timer-fill {
+            height: 100%;
+            width: 100%;
+            border-radius: 2px;
+            transition: width 3s linear;
+        }
+        
+        /* ==================== ЧАСТИЦЫ ==================== */
         .particle {
             position: absolute;
             pointer-events: none;
@@ -341,7 +421,12 @@
             font-size: inherit;
         }
         
-        /* Комбо текст */
+        @keyframes particleFly {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; }
+        }
+        
+        /* ==================== КОМБО ТЕКСТ ==================== */
         #comboText {
             position: absolute;
             bottom: 120px;
@@ -368,14 +453,14 @@
             100% { transform: translateX(-50%) scale(1) rotate(0deg); opacity: 1; }
         }
         
-        /* Магазин усилений */
+        /* ==================== МАГАЗИН ==================== */
         #shopOverlay {
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.85);
+            background: rgba(0,0,0,0.9);
             z-index: 50;
             display: none;
             align-items: center;
@@ -392,7 +477,7 @@
             background: rgba(255,255,255,0.05);
             border-radius: 24px;
             padding: 30px;
-            max-width: 400px;
+            max-width: 420px;
             width: 100%;
             border: 1px solid rgba(255,255,255,0.1);
             backdrop-filter: blur(20px);
@@ -400,16 +485,31 @@
             overflow-y: auto;
         }
         
+        .shop-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
         .shop-title {
             color: white;
             font-size: 28px;
             font-weight: 900;
-            text-align: center;
-            margin-bottom: 20px;
         }
         
         .shop-title span {
             color: var(--accent);
+        }
+        
+        .shop-coins {
+            color: var(--accent);
+            font-size: 18px;
+            font-weight: 700;
+            padding: 8px 16px;
+            background: rgba(255,215,0,0.1);
+            border-radius: 12px;
+            border: 1px solid rgba(255,215,0,0.2);
         }
         
         .shop-item {
@@ -422,6 +522,7 @@
             gap: 12px;
             border: 1px solid rgba(255,255,255,0.05);
             transition: all 0.3s;
+            cursor: pointer;
         }
         
         .shop-item:active {
@@ -465,12 +566,19 @@
             background: rgba(255,215,0,0.15);
             border-radius: 10px;
             border: 1px solid rgba(255,215,0,0.2);
+            white-space: nowrap;
         }
         
         .shop-item .item-price.owned {
-            color: #4CAF50;
-            border-color: #4CAF50;
+            color: var(--success);
+            border-color: var(--success);
             background: rgba(76,175,80,0.15);
+        }
+        
+        .shop-item .item-price.active {
+            color: var(--warning);
+            border-color: var(--warning);
+            background: rgba(255,152,0,0.15);
         }
         
         .shop-close {
@@ -493,7 +601,111 @@
             background: rgba(255,255,255,0.15);
         }
         
-        /* Оверлеи */
+        /* ==================== МЕНЮ ==================== */
+        #menuOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 90;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backdrop-filter: blur(20px);
+        }
+        
+        #menuOverlay.active {
+            display: flex;
+        }
+        
+        .menu-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 24px;
+            padding: 30px;
+            max-width: 400px;
+            width: 100%;
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(20px);
+            text-align: center;
+        }
+        
+        .menu-title {
+            color: white;
+            font-size: 36px;
+            font-weight: 900;
+            margin-bottom: 10px;
+        }
+        
+        .menu-title span {
+            color: var(--accent);
+        }
+        
+        .menu-subtitle {
+            color: rgba(255,255,255,0.6);
+            font-size: 14px;
+            font-family: -apple-system, sans-serif;
+            margin-bottom: 25px;
+        }
+        
+        .menu-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+        
+        .menu-stat {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .menu-stat .stat-value {
+            color: var(--accent);
+            font-size: 20px;
+            font-weight: 700;
+        }
+        
+        .menu-stat .stat-label {
+            color: rgba(255,255,255,0.4);
+            font-size: 8px;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
+        }
+        
+        .menu-button {
+            width: 100%;
+            padding: 14px;
+            margin: 6px 0;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        .menu-button:active {
+            transform: scale(0.95);
+        }
+        
+        .menu-button.gold {
+            background: linear-gradient(135deg, #f7971e, #ffd200);
+        }
+        
+        .menu-button.outline {
+            background: transparent;
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+        
+        /* ==================== ОВЕРЛЕИ ==================== */
         .overlay {
             position: absolute;
             top: 0;
@@ -585,7 +797,43 @@
             box-shadow: none;
         }
         
-        /* Рекламный баннер */
+        .game-button.success {
+            background: linear-gradient(135deg, var(--success), #45a049);
+            box-shadow: 0 4px 20px rgba(76,175,80,0.3);
+        }
+        
+        /* ==================== ПРОГРЕСС УРОВНЯ ==================== */
+        #levelProgress {
+            position: absolute;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 8;
+            width: 200px;
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        #levelProgress .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            border-radius: 4px;
+            transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            width: 0%;
+        }
+        
+        #levelProgress .progress-label {
+            position: absolute;
+            top: -20px;
+            right: 0;
+            color: rgba(255,255,255,0.4);
+            font-size: 8px;
+            letter-spacing: 1px;
+        }
+        
+        /* ==================== РЕКЛАМА ==================== */
         #adBanner {
             position: absolute;
             bottom: 0;
@@ -629,70 +877,7 @@
             border-color: transparent;
         }
         
-        /* Уровень прогресс */
-        #levelProgress {
-            position: absolute;
-            bottom: 70px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 8;
-            width: 200px;
-            height: 4px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 4px;
-            overflow: hidden;
-        }
-        
-        #levelProgress .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--primary), var(--accent));
-            border-radius: 4px;
-            transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-            width: 0%;
-        }
-        
-        #levelProgress .progress-label {
-            position: absolute;
-            top: -20px;
-            right: 0;
-            color: rgba(255,255,255,0.4);
-            font-size: 8px;
-            letter-spacing: 1px;
-        }
-        
-        /* Онлайн рекорды */
-        .leaderboard-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            font-family: -apple-system, sans-serif;
-        }
-        
-        .leaderboard-item .rank {
-            color: var(--accent);
-            font-weight: 700;
-            min-width: 30px;
-        }
-        
-        .leaderboard-item .name {
-            color: white;
-            flex: 1;
-            margin-left: 10px;
-        }
-        
-        .leaderboard-item .score {
-            color: var(--accent);
-            font-weight: 700;
-        }
-        
-        .leaderboard-item .level {
-            color: rgba(255,255,255,0.4);
-            font-size: 12px;
-            margin-left: 10px;
-        }
-        
-        /* Адаптивность */
+        /* ==================== АДАПТИВНОСТЬ ==================== */
         @media (max-width: 480px) {
             .star .star-emoji { font-size: 50px !important; }
             .bonus .bonus-emoji { font-size: 36px !important; }
@@ -704,16 +889,29 @@
             #timerCircle { width: 54px; height: 54px; }
             #timerText { font-size: 20px; }
             #comboText { font-size: 24px; }
+            #coinsInfo { font-size: 12px; padding: 2px 8px; }
+            .menu-stats { grid-template-columns: 1fr 1fr; }
+            .shop-card { padding: 20px; }
         }
         
-        /* Скрытые элементы */
+        @media (max-width: 380px) {
+            .top-button { width: 30px; height: 30px; font-size: 14px; }
+            #levelInfo { font-size: 11px; }
+            #scoreInfo { font-size: 17px; }
+            #livesContainer { padding: 2px 8px; }
+            .life-icon { font-size: 13px; }
+        }
+        
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
     <div id="gameArea">
-        <!-- Фоновый холст -->
+        <!-- Активный фон -->
         <canvas id="bgCanvas"></canvas>
+        <div class="nebula" style="width: 400px; height: 400px; background: rgba(108,60,225,0.2); top: -100px; left: -100px; animation-delay: 0s;"></div>
+        <div class="nebula" style="width: 500px; height: 500px; background: rgba(232,62,140,0.15); bottom: -150px; right: -150px; animation-delay: -7s;"></div>
+        <div class="nebula" style="width: 300px; height: 300px; background: rgba(255,215,0,0.1); top: 50%; left: 50%; animation-delay: -14s;"></div>
         
         <!-- Верхняя панель -->
         <div id="topBar">
@@ -729,10 +927,14 @@
                     <span class="life-icon">❤️</span>
                 </div>
                 
+                <div id="coinsInfo">💰 <span id="coinsNum">0</span></div>
+                
                 <button class="top-button" onclick="togglePause()" id="pauseBtn">⏸</button>
                 <button class="top-button" onclick="toggleSound()" id="soundBtn">🔊</button>
+                <button class="top-button" onclick="openMenu()" id="menuBtn">☰</button>
                 <button class="top-button" onclick="openShop()" id="shopBtn">🛒</button>
                 <button class="top-button" onclick="showLeaderboard()">🏆</button>
+                <button class="top-button" onclick="shareGame()">📤</button>
             </div>
             
             <div id="scoreInfo">⭐️ <span id="scoreNum">0</span></div>
@@ -761,10 +963,41 @@
             <button class="ad-button premium" onclick="removeAds()">💎 Premium</button>
         </div>
         
-        <!-- Магазин -->
+        <!-- МЕНЮ -->
+        <div id="menuOverlay">
+            <div class="menu-card">
+                <div class="menu-title">⭐️ <span>Меню</span></div>
+                <div class="menu-subtitle">Добро пожаловать в игру!</div>
+                
+                <div class="menu-stats">
+                    <div class="menu-stat">
+                        <div class="stat-value" id="menuScore">0</div>
+                        <div class="stat-label">ОЧКОВ</div>
+                    </div>
+                    <div class="menu-stat">
+                        <div class="stat-value" id="menuCoins">0</div>
+                        <div class="stat-label">МОНЕТ</div>
+                    </div>
+                    <div class="menu-stat">
+                        <div class="stat-value" id="menuLevel">1</div>
+                        <div class="stat-label">УРОВЕНЬ</div>
+                    </div>
+                </div>
+                
+                <button class="menu-button gold" onclick="closeMenu(); startGame();">🔄 Новая игра</button>
+                <button class="menu-button" onclick="closeMenu(); openShop();">🛒 Магазин</button>
+                <button class="menu-button" onclick="closeMenu(); showLeaderboard();">🏆 Рекорды</button>
+                <button class="menu-button outline" onclick="closeMenu();">✕ Закрыть</button>
+            </div>
+        </div>
+        
+        <!-- МАГАЗИН -->
         <div id="shopOverlay">
             <div class="shop-card">
-                <div class="shop-title">🛒 <span>Магазин</span></div>
+                <div class="shop-header">
+                    <div class="shop-title">🛒 <span>Магазин</span></div>
+                    <div class="shop-coins">💰 <span id="shopCoins">0</span></div>
+                </div>
                 
                 <div class="shop-item" onclick="buyPowerup('shield')">
                     <div class="item-icon">🛡️</div>
@@ -802,6 +1035,24 @@
                     <div class="item-price" id="magnetPrice">100⭐</div>
                 </div>
                 
+                <div class="shop-item" onclick="buyPowerup('extraLife')">
+                    <div class="item-icon">❤️</div>
+                    <div class="item-info">
+                        <div class="item-name">Доп. жизнь</div>
+                        <div class="item-desc">Восстанавливает одну жизнь</div>
+                    </div>
+                    <div class="item-price" id="extraLifePrice">40⭐</div>
+                </div>
+                
+                <div class="shop-item" onclick="buyPowerup('speedBoost')">
+                    <div class="item-icon">🚀</div>
+                    <div class="item-info">
+                        <div class="item-name">Ускорение</div>
+                        <div class="item-desc">Звезда двигается быстрее, но +2 очка</div>
+                    </div>
+                    <div class="item-price" id="speedBoostPrice">120⭐</div>
+                </div>
+                
                 <button class="shop-close" onclick="closeShop()">✕ Закрыть</button>
             </div>
         </div>
@@ -822,6 +1073,7 @@
                 <h2 class="overlay-title">💫 Игра окончена!</h2>
                 <p class="overlay-text" id="finalScore">⭐️ Счёт: 0</p>
                 <p class="overlay-text" id="finalLevel">📊 Уровень: 1</p>
+                <p class="overlay-text" id="finalCombo">⚡ Лучшее комбо: 0</p>
                 <p class="overlay-text" id="bestScore" style="color: var(--accent);">🏆 Лучший: 0</p>
                 
                 <button class="game-button" onclick="startGame()">🔄 Играть снова</button>
@@ -850,7 +1102,11 @@
             maxLives: 3,
             starSizes: { min: 40, max: 70 },
             bonusChance: 0.15,
-            speed: { min: 400, max: 1500 }
+            speed: { min: 400, max: 1500 },
+            powerupDurations: {
+                double: 10000,
+                magnet: 5000
+            }
         };
         
         // ==================== СОСТОЯНИЕ ====================
@@ -878,7 +1134,7 @@
         let bgMusic = null;
         let bgAnimationId = null;
         
-        // ==================== ФОНОВЫЕ ЧАСТИЦЫ ====================
+        // ==================== АКТИВНЫЙ ФОН ====================
         function initBackground() {
             const canvas = document.getElementById('bgCanvas');
             const ctx = canvas.getContext('2d');
@@ -891,49 +1147,79 @@
             window.addEventListener('resize', resize);
             
             const stars = [];
-            const count = 80;
+            const count = 120;
             
             for (let i = 0; i < count; i++) {
                 stars.push({
                     x: Math.random() * canvas.width,
                     y: Math.random() * canvas.height,
-                    radius: Math.random() * 2 + 0.5,
-                    speed: Math.random() * 0.3 + 0.1,
-                    opacity: Math.random() * 0.5 + 0.2,
-                    phase: Math.random() * Math.PI * 2
+                    radius: Math.random() * 2.5 + 0.5,
+                    speed: Math.random() * 0.5 + 0.1,
+                    opacity: Math.random() * 0.6 + 0.2,
+                    phase: Math.random() * Math.PI * 2,
+                    color: ['white', '#FFD700', '#6C3CE1', '#E83E8C'][Math.floor(Math.random() * 4)]
+                });
+            }
+            
+            let shootingStars = [];
+            
+            function createShootingStar() {
+                if (Math.random() > 0.01) return;
+                shootingStars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height * 0.3,
+                    speed: 4 + Math.random() * 3,
+                    length: 80 + Math.random() * 100,
+                    angle: Math.PI / 4 + Math.random() * 0.2,
+                    life: 1,
+                    decay: 0.005 + Math.random() * 0.005
                 });
             }
             
             function draw() {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 
-                // Градиентный фон
-                const gradient = ctx.createRadialGradient(
-                    canvas.width/2, canvas.height/2, 0,
-                    canvas.width/2, canvas.height/2, canvas.width/2
-                );
-                gradient.addColorStop(0, 'rgba(108, 60, 225, 0.1)');
-                gradient.addColorStop(0.5, 'rgba(232, 62, 140, 0.05)');
-                gradient.addColorStop(1, 'rgba(15, 12, 41, 0)');
-                ctx.fillStyle = gradient;
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                
-                // Звезды
+                // Мерцающие звезды
                 const time = Date.now() / 1000;
                 stars.forEach(star => {
                     const opacity = star.opacity * (0.6 + 0.4 * Math.sin(time * star.speed + star.phase));
                     ctx.beginPath();
                     ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-                    ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+                    ctx.fillStyle = star.color;
+                    ctx.globalAlpha = opacity;
                     ctx.fill();
                     
                     // Свечение для больших звезд
-                    if (star.radius > 1.5) {
-                        ctx.shadowBlur = 10;
-                        ctx.shadowColor = 'rgba(255, 215, 0, 0.1)';
+                    if (star.radius > 1.8) {
+                        ctx.shadowBlur = 15;
+                        ctx.shadowColor = star.color + '40';
                         ctx.fill();
                         ctx.shadowBlur = 0;
                     }
+                    ctx.globalAlpha = 1;
+                });
+                
+                // Падающие звезды
+                createShootingStar();
+                shootingStars = shootingStars.filter(ss => ss.life > 0);
+                shootingStars.forEach(ss => {
+                    ctx.beginPath();
+                    ctx.moveTo(ss.x, ss.y);
+                    const endX = ss.x - Math.cos(ss.angle) * ss.length * ss.life;
+                    const endY = ss.y + Math.sin(ss.angle) * ss.length * ss.life;
+                    ctx.lineTo(endX, endY);
+                    
+                    const gradient = ctx.createLinearGradient(ss.x, ss.y, endX, endY);
+                    gradient.addColorStop(0, `rgba(255, 255, 255, ${ss.life})`);
+                    gradient.addColorStop(1, `rgba(255, 255, 255, 0)`);
+                    
+                    ctx.strokeStyle = gradient;
+                    ctx.lineWidth = 2 * ss.life;
+                    ctx.stroke();
+                    
+                    ss.x += Math.cos(ss.angle) * ss.speed;
+                    ss.y += Math.sin(ss.angle) * ss.speed;
+                    ss.life -= ss.decay;
                 });
                 
                 bgAnimationId = requestAnimationFrame(draw);
@@ -946,11 +1232,12 @@
         // ==================== ФОНОВАЯ МУЗЫКА ====================
         function initBackgroundMusic() {
             try {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
                 
-                // Создаем простую мелодию используя Web Audio
                 function playMelody() {
-                    if (!state.soundOn || state.isPaused) return;
+                    if (!state.soundOn || state.isPaused || state.gameOver) return;
                     
                     const now = audioContext.currentTime;
                     const notes = [
@@ -972,14 +1259,13 @@
                         
                         osc.frequency.value = note.freq;
                         osc.type = 'sine';
-                        gain.gain.setValueAtTime(0.05, now + note.time);
+                        gain.gain.setValueAtTime(0.04, now + note.time);
                         gain.gain.exponentialRampToValueAtTime(0.01, now + note.time + note.dur);
                         
                         osc.start(now + note.time);
                         osc.stop(now + note.time + note.dur);
                     });
                     
-                    // Повтор через 3 секунды
                     if (!state.gameOver && state.soundOn) {
                         bgMusic = setTimeout(() => playMelody(), 3000);
                     }
@@ -1022,17 +1308,17 @@
                         oscillator.stop(now + 0.3);
                         break;
                     case 'levelup':
-                        [523, 659, 784].forEach((freq, i) => {
+                        [523, 659, 784, 1046].forEach((freq, i) => {
                             const osc = audioContext.createOscillator();
                             const gain = audioContext.createGain();
                             osc.connect(gain);
                             gain.connect(audioContext.destination);
                             osc.frequency.value = freq;
                             osc.type = 'sine';
-                            gain.gain.setValueAtTime(0.15, now + i * 0.15);
-                            gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.15 + 0.15);
-                            osc.start(now + i * 0.15);
-                            osc.stop(now + i * 0.15 + 0.15);
+                            gain.gain.setValueAtTime(0.12, now + i * 0.12);
+                            gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.12 + 0.12);
+                            osc.start(now + i * 0.12);
+                            osc.stop(now + i * 0.12 + 0.12);
                         });
                         break;
                     case 'bonus':
@@ -1061,9 +1347,35 @@
                         oscillator.start(now);
                         oscillator.stop(now + 0.4);
                         break;
+                    case 'shield':
+                        oscillator.frequency.setValueAtTime(500, now);
+                        oscillator.type = 'square';
+                        gainNode.gain.setValueAtTime(0.15, now);
+                        oscillator.frequency.setValueAtTime(800, now + 0.1);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                        oscillator.start(now);
+                        oscillator.stop(now + 0.3);
+                        break;
+                    case 'life':
+                        oscillator.frequency.setValueAtTime(300, now);
+                        oscillator.type = 'sine';
+                        gainNode.gain.setValueAtTime(0.2, now);
+                        oscillator.frequency.setValueAtTime(500, now + 0.1);
+                        oscillator.frequency.setValueAtTime(700, now + 0.2);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                        oscillator.start(now);
+                        oscillator.stop(now + 0.4);
+                        break;
                 }
             } catch(e) {
                 console.log('Ошибка звука');
+            }
+        }
+        
+        // ==================== ВИБРАЦИЯ ====================
+        function vibrate(duration = 50) {
+            if (navigator.vibrate) {
+                navigator.vibrate(duration);
             }
         }
         
@@ -1111,6 +1423,19 @@
             startGame();
         }
         
+        // ==================== МЕНЮ ====================
+        function openMenu() {
+            $('menuScore').textContent = state.score;
+            $('menuCoins').textContent = state.coins;
+            $('menuLevel').textContent = state.level;
+            $('menuOverlay').classList.add('active');
+            if (!state.isPaused && !state.gameOver) togglePause();
+        }
+        
+        function closeMenu() {
+            $('menuOverlay').classList.remove('active');
+        }
+        
         // ==================== ТАЙМЕРЫ ====================
         function stopTimers() {
             Object.values(gameTimers).forEach(timer => {
@@ -1142,7 +1467,12 @@
         function moveStarTimer() {
             if (gameTimers.star) clearInterval(gameTimers.star);
             
-            const interval = Math.max(CONFIG.speed.min, CONFIG.speed.max - state.level * 100);
+            let interval = Math.max(CONFIG.speed.min, CONFIG.speed.max - state.level * 100);
+            
+            // Ускорение если активен буст
+            if (state.activePowerups.speedBoost) {
+                interval = Math.max(200, interval * 0.6);
+            }
             
             gameTimers.star = setInterval(() => {
                 if (!state.isPaused && !state.gameOver) {
@@ -1164,10 +1494,18 @@
         function loseLife() {
             state.lives--;
             updateLives();
+            vibrate(100);
             
             if (state.lives <= 0) {
                 endGame();
             }
+        }
+        
+        function addLife() {
+            state.lives = Math.min(state.lives + 1, CONFIG.maxLives);
+            updateLives();
+            playSound('life');
+            showComboText('❤️ +1 жизнь!', '#FF6B6B');
         }
         
         // ==================== НАЧАЛО ИГРЫ ====================
@@ -1190,6 +1528,7 @@
             $('gameOverOverlay').classList.remove('active');
             $('pauseOverlay').classList.remove('active');
             $('leaderboardOverlay').classList.remove('active');
+            $('menuOverlay').classList.remove('active');
             $('pauseBtn').textContent = '⏸';
             
             clearGameField();
@@ -1240,7 +1579,6 @@
             emoji.style.fontSize = Math.max(CONFIG.starSizes.min, CONFIG.starSizes.max - state.level * 2) + 'px';
             star.appendChild(emoji);
             
-            // Кольцо для хороших звезд
             if (!state.isBadStar) {
                 const ring = document.createElement('div');
                 ring.className = 'star-ring';
@@ -1332,8 +1670,9 @@
             if (state.isBadStar && state.activePowerups.shield) {
                 state.activePowerups.shield = false;
                 showComboText('🛡️ Щит активирован!', '#4CAF50');
-                playSound('powerup');
-                createParticles(star, '#4CAF50', 20);
+                playSound('shield');
+                createParticles(star, '#4CAF50', 25);
+                vibrate(30);
                 state.starClickable = true;
                 setTimeout(() => moveStar(), 300);
                 return;
@@ -1344,7 +1683,8 @@
                 state.combo = 0;
                 showComboText('💥 Промах! -2', '#ff4444');
                 playSound('wrong');
-                createParticles(star, '#ff4444', 15);
+                createParticles(star, '#ff4444', 20);
+                vibrate(100);
                 
                 star.classList.add('shake');
                 setTimeout(() => {
@@ -1358,35 +1698,53 @@
                 if (state.combo > state.maxCombo) state.maxCombo = state.combo;
                 
                 let bonus = 1;
-                if (state.combo > 5) bonus = 3;
-                else if (state.combo > 3) bonus = 2;
+                let text = '⭐️ +' + bonus;
+                let color = '#FFD700';
+                
+                if (state.combo >= 10) {
+                    bonus = 5;
+                    text = '🔥 МЕГА КОМБО! +5';
+                    color = '#FF0000';
+                } else if (state.combo >= 5) {
+                    bonus = 3;
+                    text = '⚡ СУПЕР КОМБО! +3';
+                    color = '#FF6B00';
+                } else if (state.combo >= 3) {
+                    bonus = 2;
+                    text = '⭐️ КОМБО! +2';
+                    color = '#FFD700';
+                }
                 
                 // Двойные очки
                 if (state.activePowerups.double) bonus *= 2;
                 
+                // Ускорение дает +2 бонус
+                if (state.activePowerups.speedBoost) bonus += 2;
+                
                 state.score += bonus;
-                
-                let text = '⭐️ +' + bonus;
-                let color = '#FFD700';
-                
-                if (state.combo > 5) {
-                    text = '🔥 СУПЕР! +' + bonus;
-                    color = '#FF6B6B';
-                } else if (state.combo > 3) {
-                    text = '⭐️ КРУТО! +' + bonus;
-                    color = '#FFD93D';
-                }
                 
                 showComboText(text, color);
                 playSound('correct');
-                createParticles(star, '#FFD700', 20);
+                createParticles(star, '#FFD700', 25);
+                vibrate(30);
                 
                 state.totalScore += bonus;
                 state.coins += bonus;
                 localStorage.setItem('coins', state.coins);
                 
+                // Проверка достижений
+                checkAchievements();
+                
+                // Спавн бонуса
                 if (Math.random() * 100 <= CONFIG.bonusChance * 100 && !state.bonusActive) {
                     spawnBonus();
+                }
+                
+                // Магнит - автоматический сбор бонусов
+                if (state.activePowerups.magnet && !state.bonusActive) {
+                    setTimeout(() => {
+                        if (!state.bonusActive) spawnBonus();
+                    }, 500);
                 }
             }
             
@@ -1421,6 +1779,7 @@
                         state.coins += 3;
                         showComboText('❤️ +3 очка!', '#FF6B6B');
                         playSound('bonus');
+                        checkAchievements();
                     }
                 },
                 { 
@@ -1443,6 +1802,28 @@
                         state.coins += 5;
                         showComboText('🌟 +5 очков!', '#FFD93D');
                         playSound('bonus');
+                        checkAchievements();
+                    }
+                },
+                { 
+                    emoji: '❤️‍🔥', 
+                    label: '+1 жизнь',
+                    color: '#FF1493',
+                    effect: () => { 
+                        addLife();
+                        showComboText('❤️‍🔥 +1 жизнь!', '#FF1493');
+                        playSound('life');
+                    }
+                },
+                { 
+                    emoji: '💎', 
+                    label: '+10 монет',
+                    color: '#00D4FF',
+                    effect: () => { 
+                        state.coins += 10;
+                        localStorage.setItem('coins', state.coins);
+                        showComboText('💎 +10 монет!', '#00D4FF');
+                        playSound('bonus');
                     }
                 }
             ];
@@ -1459,6 +1840,15 @@
             label.textContent = type.label;
             bonus.appendChild(label);
             
+            // Таймер бонуса
+            const timerBar = document.createElement('div');
+            timerBar.className = 'bonus-timer';
+            const timerFill = document.createElement('div');
+            timerFill.className = 'timer-fill';
+            timerFill.style.background = type.color;
+            timerBar.appendChild(timerFill);
+            bonus.appendChild(timerBar);
+            
             const pos = getRandomPosition(bonus);
             bonus.style.left = pos.x + 'px';
             bonus.style.top = pos.y + 'px';
@@ -1468,10 +1858,11 @@
                 if (state.isPaused || state.gameOver) return;
                 
                 type.effect();
-                createParticles(bonus, type.color, 25);
+                createParticles(bonus, type.color, 30);
                 bonus.remove();
                 state.bonusActive = false;
                 updateUI();
+                vibrate(50);
             };
             
             bonus.addEventListener('click', collectBonus);
@@ -1479,6 +1870,11 @@
             
             gameArea.appendChild(bonus);
             state.bonusActive = true;
+            
+            // Анимация таймера
+            requestAnimationFrame(() => {
+                timerFill.style.width = '0%';
+            });
             
             gameTimers.bonus = setTimeout(() => {
                 if (bonus.parentNode) {
@@ -1497,7 +1893,7 @@
             const x = rect.left - gameRect.left + rect.width / 2;
             const y = rect.top - gameRect.top + rect.height / 2;
             
-            const emojis = ['✨', '⭐️', '🌟', '💫'];
+            const emojis = ['✨', '⭐️', '🌟', '💫', '🎉'];
             
             for (let i = 0; i < count; i++) {
                 const particle = document.createElement('div');
@@ -1506,14 +1902,15 @@
                 const emojiSpan = document.createElement('span');
                 emojiSpan.className = 'particle-emoji';
                 emojiSpan.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-                emojiSpan.style.fontSize = (Math.random() * 20 + 10) + 'px';
+                emojiSpan.style.fontSize = (Math.random() * 25 + 10) + 'px';
                 particle.appendChild(emojiSpan);
                 
                 particle.style.left = x + 'px';
                 particle.style.top = y + 'px';
+                particle.style.color = color;
                 
                 const angle = Math.random() * Math.PI * 2;
-                const distance = Math.random() * 150 + 50;
+                const distance = Math.random() * 200 + 50;
                 const dx = Math.cos(angle) * distance;
                 const dy = Math.sin(angle) * distance;
                 
@@ -1526,6 +1923,33 @@
                     if (particle.parentNode) particle.remove();
                 }, 800);
             }
+        }
+        
+        // ==================== ДОСТИЖЕНИЯ ====================
+        const ACHIEVEMENTS = {
+            first_star: { name: '🌟 Первая звезда', condition: () => state.score >= 10 },
+            combo_3: { name: '⚡ Комбо x3', condition: () => state.maxCombo >= 3 },
+            combo_5: { name: '🔥 Комбо x5', condition: () => state.maxCombo >= 5 },
+            combo_10: { name: '💥 Комбо x10', condition: () => state.maxCombo >= 10 },
+            level_5: { name: '📈 Уровень 5', condition: () => state.level >= 5 },
+            level_10: { name: '🌟 Уровень 10', condition: () => state.level >= 10 },
+            score_100: { name: '💎 100 очков', condition: () => state.score >= 100 },
+            score_500: { name: '👑 500 очков', condition: () => state.score >= 500 },
+            lives_3: { name: '❤️ 3 жизни', condition: () => state.lives === CONFIG.maxLives && state.level >= 3 },
+        };
+        
+        function checkAchievements() {
+            Object.keys(ACHIEVEMENTS).forEach(key => {
+                const ach = ACHIEVEMENTS[key];
+                if (ach.condition() && !localStorage.getItem('achievement_' + key)) {
+                    localStorage.setItem('achievement_' + key, 'true');
+                    showComboText('🏆 ' + ach.name, '#FFD700');
+                    playSound('levelup');
+                    state.coins += 5;
+                    localStorage.setItem('coins', state.coins);
+                    updateUI();
+                }
+            });
         }
         
         // ==================== КОМБО ТЕКСТ ====================
@@ -1542,16 +1966,17 @@
             if (gameTimers.combo) clearTimeout(gameTimers.combo);
             gameTimers.combo = setTimeout(() => {
                 comboElement.classList.remove('visible');
-            }, 1200);
+            }, 1400);
         }
         
         // ==================== ОБНОВЛЕНИЕ UI ====================
         function updateUI() {
             $('levelNum').textContent = state.level;
             $('scoreNum').textContent = state.score;
+            $('coinsNum').textContent = state.coins;
+            $('shopCoins').textContent = state.coins;
             $('comboInfo').textContent = state.combo > 1 ? '⚡ x' + state.combo : '';
             
-            // Лучший счет
             const best = getBestScore();
             if (state.score > best) {
                 $('scoreInfo').style.color = '#FF6B6B';
@@ -1599,6 +2024,7 @@
                 
                 playSound('levelup');
                 showComboText('🎉 УРОВЕНЬ ' + state.level + '!', '#4ECDC4');
+                vibrate(50);
                 
                 moveStarTimer();
                 
@@ -1628,10 +2054,12 @@
             
             $('finalScore').textContent = '⭐️ Счёт: ' + state.score;
             $('finalLevel').textContent = '📊 Уровень: ' + state.level;
+            $('finalCombo').textContent = '⚡ Лучшее комбо: ' + state.maxCombo;
             $('bestScore').textContent = '🏆 Лучший: ' + getBestScore();
             $('gameOverOverlay').classList.add('active');
             
             playSound('gameover');
+            vibrate(200);
             
             if (window.Telegram?.WebApp) {
                 window.Telegram.WebApp.sendData(JSON.stringify({
@@ -1677,6 +2105,7 @@
                             <span class="name">Игрок</span>
                             <span class="score">${s.score}⭐</span>
                             <span class="level">Ур.${s.level}</span>
+                            <span style="font-size: 10px; color: rgba(255,255,255,0.3);">⚡${s.combo || 0}</span>
                         </div>
                     `;
                 }).join('');
@@ -1694,7 +2123,9 @@
             shield: 50,
             double: 80,
             extraTime: 60,
-            magnet: 100
+            magnet: 100,
+            extraLife: 40,
+            speedBoost: 120
         };
         
         function openShop() {
@@ -1707,26 +2138,49 @@
         }
         
         function updateShopUI() {
-            const prices = {
-                shield: POWERUP_PRICES.shield,
-                double: POWERUP_PRICES.double,
-                extraTime: POWERUP_PRICES.extraTime,
-                magnet: POWERUP_PRICES.magnet
-            };
+            const prices = POWERUP_PRICES;
             
             Object.keys(prices).forEach(key => {
                 const el = $(key + 'Price');
                 if (el) {
                     const owned = localStorage.getItem('powerup_' + key) === 'true';
-                    el.textContent = owned ? '✅ Владелец' : prices[key] + '⭐';
-                    el.className = 'item-price' + (owned ? ' owned' : '');
+                    const active = state.activePowerups[key];
+                    if (owned) {
+                        el.textContent = active ? '✅ Активен' : '✅ Владелец';
+                        el.className = 'item-price' + (active ? ' active' : ' owned');
+                    } else {
+                        el.textContent = prices[key] + '⭐';
+                        el.className = 'item-price';
+                    }
                 }
             });
+            
+            $('shopCoins').textContent = state.coins;
+        }
+        
+        function getPowerupName(type) {
+            const names = {
+                shield: '🛡️ Щит',
+                double: '2️⃣ Двойные очки',
+                extraTime: '⏱️ +5 секунд',
+                magnet: '🧲 Магнит',
+                extraLife: '❤️ Доп. жизнь',
+                speedBoost: '🚀 Ускорение'
+            };
+            return names[type] || type;
         }
         
         function buyPowerup(type) {
             if (localStorage.getItem('powerup_' + type) === 'true') {
-                alert('У вас уже есть это усиление!');
+                // Если уже владелец, активируем
+                if (!state.activePowerups[type]) {
+                    activatePowerup(type);
+                    updateShopUI();
+                    playSound('powerup');
+                    showComboText('✅ ' + getPowerupName(type) + ' активирован!', '#4CAF50');
+                } else {
+                    alert('Усиление уже активно!');
+                }
                 return;
             }
             
@@ -1741,23 +2195,12 @@
                 localStorage.setItem('coins', state.coins);
                 localStorage.setItem('powerup_' + type, 'true');
                 
-                // Активируем сразу
                 activatePowerup(type);
                 
                 updateShopUI();
                 playSound('powerup');
                 showComboText('✅ ' + getPowerupName(type) + ' активирован!', '#4CAF50');
             }
-        }
-        
-        function getPowerupName(type) {
-            const names = {
-                shield: '🛡️ Щит',
-                double: '2️⃣ Двойные очки',
-                extraTime: '⏱️ +5 секунд',
-                magnet: '🧲 Магнит'
-            };
-            return names[type] || type;
         }
         
         function activatePowerup(type) {
@@ -1768,34 +2211,43 @@
                     // Щит активен до использования
                     break;
                 case 'double':
-                    // Двойные очки на 10 секунд
                     if (gameTimers.powerup) clearTimeout(gameTimers.powerup);
                     gameTimers.powerup = setTimeout(() => {
                         state.activePowerups.double = false;
                         showComboText('⏱️ Двойные очки закончились', 'rgba(255,255,255,0.6)');
-                    }, 10000);
+                        updateShopUI();
+                    }, CONFIG.powerupDurations.double);
                     break;
                 case 'extraTime':
                     state.timeLeft += 5;
                     updateTimer();
                     break;
                 case 'magnet':
-                    // Магнит на 5 секунд
                     if (gameTimers.powerup) clearTimeout(gameTimers.powerup);
                     gameTimers.powerup = setTimeout(() => {
                         state.activePowerups.magnet = false;
                         showComboText('⏱️ Магнит закончился', 'rgba(255,255,255,0.6)');
-                    }, 5000);
+                        updateShopUI();
+                    }, CONFIG.powerupDurations.magnet);
+                    // Автоматический сбор бонуса
+                    if (!state.bonusActive) {
+                        setTimeout(() => spawnBonus(), 300);
+                        setTimeout(() => {
+                            if (!state.bonusActive) spawnBonus();
+                        }, 1500);
+                    }
+                    break;
+                case 'extraLife':
+                    addLife();
+                    localStorage.setItem('powerup_' + type, 'false');
+                    break;
+                case 'speedBoost':
+                    // Ускорение постоянно активно
+                    moveStarTimer();
                     break;
             }
             
-            // Автоматически спавним бонус если магнит
-            if (type === 'magnet' && !state.bonusActive) {
-                spawnBonus();
-                setTimeout(() => {
-                    if (!state.bonusActive) spawnBonus();
-                }, 2000);
-            }
+            updateShopUI();
         }
         
         // ==================== РЕКЛАМА ====================
@@ -1829,6 +2281,7 @@
             updateUI();
             playSound('bonus');
             
+            $('gameOverOverlay').classList.remove('active');
             startGame();
         }
         
@@ -1889,9 +2342,6 @@
             // Звук
             setTimeout(() => {
                 initBackgroundMusic();
-                if (state.soundOn && !localStorage.getItem('soundOff')) {
-                    // Небольшая задержка для первого запуска
-                }
             }, 1000);
             
             // Реклама
@@ -1899,9 +2349,9 @@
                 $('adBanner').classList.remove('active');
             }
             
-            // Сброс усилений при первом запуске
+            // Инициализация усилений
             if (!localStorage.getItem('powerup_initialized')) {
-                ['shield', 'double', 'extraTime', 'magnet'].forEach(key => {
+                ['shield', 'double', 'extraTime', 'magnet', 'extraLife', 'speedBoost'].forEach(key => {
                     localStorage.setItem('powerup_' + key, 'false');
                 });
                 localStorage.setItem('powerup_initialized', 'true');
@@ -1925,8 +2375,9 @@
             }
         });
         
-        console.log('⭐️ Поймай звезду - Deluxe Edition v3.0');
-        console.log('🔥 Улучшенная графика, музыка, магазин и многое другое!');
+        console.log('⭐️ Поймай звезду - Ultimate Edition v4.0');
+        console.log('🔥 Активный фон, меню, магазин, достижения и многое другое!');
+        console.log('💡 Совет: Собирайте комбо для больших очков!');
     </script>
 </body>
 </html>
