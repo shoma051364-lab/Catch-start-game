@@ -95,45 +95,42 @@
             position: absolute;
             z-index: 6;
             pointer-events: none;
-            transition: all 0.1s ease-out;
-            width: 60px;
-            height: 60px;
-            /* Корабль всегда смотрит вверх */
-            transform: rotate(0deg);
+            width: 50px;
+            height: 50px;
+            transition: all 0.05s linear;
         }
         
         #ship .ship-body {
             width: 100%;
             height: 100%;
             position: relative;
-            /* Убираем поворот, корабль всегда смотрит вверх */
-            transform: none !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
-        #ship .ship-body .ship-emoji {
-            font-size: 50px;
+        #ship .ship-emoji {
+            font-size: 45px;
             display: block;
-            filter: drop-shadow(0 0 20px rgba(108,60,225,0.5));
-            transition: all 0.3s;
-            /* Корабль всегда направлен вверх */
             transform: rotate(-90deg);
+            filter: drop-shadow(0 0 20px rgba(108,60,225,0.8));
         }
         
         #ship .ship-glow {
             position: absolute;
-            bottom: -20px;
+            bottom: -15px;
             left: 50%;
             transform: translateX(-50%);
-            width: 40px;
-            height: 20px;
-            background: radial-gradient(ellipse, rgba(108,60,225,0.3) 0%, transparent 70%);
+            width: 30px;
+            height: 15px;
+            background: radial-gradient(ellipse, rgba(255,100,0,0.6) 0%, transparent 70%);
             border-radius: 50%;
-            animation: engineGlow 0.5s ease-in-out infinite alternate;
+            animation: engineGlow 0.3s ease-in-out infinite alternate;
         }
         
         @keyframes engineGlow {
-            0% { opacity: 0.5; transform: translateX(-50%) scale(1); }
-            100% { opacity: 1; transform: translateX(-50%) scale(1.2); }
+            0% { opacity: 0.6; transform: translateX(-50%) scale(1); }
+            100% { opacity: 1; transform: translateX(-50%) scale(1.3); }
         }
         
         /* ==================== ПУЛИ ==================== */
@@ -141,55 +138,99 @@
             position: absolute;
             z-index: 4;
             pointer-events: none;
-        }
-        
-        .bullet .bullet-emoji {
-            display: block;
-            font-size: 16px;
-            animation: bulletFlyUp 0.4s ease-out forwards;
+            width: 4px;
+            height: 15px;
+            background: linear-gradient(to top, #ff6b00, #ffd700);
+            border-radius: 2px;
+            box-shadow: 0 0 10px rgba(255,100,0,0.8);
+            animation: bulletFlyUp 0.5s linear forwards;
         }
         
         @keyframes bulletFlyUp {
-            0% { transform: scale(0.5); opacity: 1; }
-            100% { transform: translateY(-80px) scale(1.5); opacity: 0; }
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-200px); opacity: 0; }
         }
         
-        /* ==================== КОМЕТЫ (ПАДАЮТ СВЕРХУ) ==================== */
+        /* ==================== РЕАЛИСТИЧНЫЕ КОМЕТЫ ==================== */
         .comet {
             position: absolute;
             z-index: 5;
             pointer-events: none;
+            width: 60px;
+            height: 60px;
             animation: cometFallDown linear forwards;
         }
         
-        .comet .comet-emoji {
-            display: block;
-            font-size: 40px;
-            filter: drop-shadow(0 0 25px rgba(255,100,0,0.8));
-            transition: transform 0.2s;
+        .comet .comet-core {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #fff, #ff8800, #ff4400, #880000);
+            box-shadow: 
+                0 0 20px rgba(255,100,0,0.8),
+                0 0 40px rgba(255,50,0,0.4),
+                inset -5px -5px 15px rgba(0,0,0,0.5);
+            animation: corePulse 0.5s ease-in-out infinite alternate;
         }
         
-        .comet.golden .comet-emoji {
-            filter: drop-shadow(0 0 25px rgba(255,215,0,0.8));
+        .comet .comet-tail {
+            position: absolute;
+            top: 50%;
+            right: -50px;
+            width: 50px;
+            height: 20px;
+            background: linear-gradient(to left, rgba(255,200,100,0.9), rgba(255,100,0,0.5), transparent);
+            border-radius: 50%;
+            transform: translateY(-50%);
+            filter: blur(5px);
+            animation: tailFlicker 0.3s ease-in-out infinite alternate;
         }
         
-        .comet.mega .comet-emoji {
-            font-size: 60px;
-            filter: drop-shadow(0 0 35px rgba(255,0,0,0.9));
+        .comet.golden .comet-core {
+            background: radial-gradient(circle at 30% 30%, #fff, #ffd700, #ff8800, #884400);
+            box-shadow: 
+                0 0 30px rgba(255,215,0,0.9),
+                0 0 60px rgba(255,150,0,0.5),
+                inset -5px -5px 15px rgba(0,0,0,0.5);
         }
         
-        .comet.hit {
-            animation: cometHit 0.3s ease-out forwards;
+        .comet.mega .comet-core {
+            width: 120%;
+            height: 120%;
+            top: -10%;
+            left: -10%;
+            background: radial-gradient(circle at 30% 30%, #fff, #ff4400, #cc0000, #440000);
+            box-shadow: 
+                0 0 40px rgba(255,0,0,0.9),
+                0 0 80px rgba(200,0,0,0.5),
+                inset -8px -8px 20px rgba(0,0,0,0.6);
         }
         
-        @keyframes cometHit {
-            0% { transform: scale(1); opacity: 1; }
-            100% { transform: scale(2); opacity: 0; }
+        .comet.dangerous .comet-core {
+            animation: dangerPulse 0.3s ease-in-out infinite alternate;
+        }
+        
+        @keyframes corePulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
+        }
+        
+        @keyframes dangerPulse {
+            0% { transform: scale(1); filter: brightness(1); }
+            100% { transform: scale(1.2); filter: brightness(1.5); }
+        }
+        
+        @keyframes tailFlicker {
+            0% { opacity: 0.7; width: 40px; }
+            100% { opacity: 1; width: 60px; }
         }
         
         @keyframes cometFallDown {
-            0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
-            100% { transform: translateY(calc(100vh)) rotate(180deg); opacity: 0; }
+            0% { transform: translateY(-100px) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(calc(100vh + 100px)) rotate(360deg); opacity: 0; }
         }
         
         /* Диагональное падение справа */
@@ -198,8 +239,10 @@
         }
         
         @keyframes cometFallDiagonalRight {
-            0% { transform: translate(100px, -100px) rotate(0deg); opacity: 1; }
-            100% { transform: translate(calc(-100vw), calc(100vh)) rotate(180deg); opacity: 0; }
+            0% { transform: translate(100px, -100px) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translate(calc(-100vw), calc(100vh)) rotate(360deg); opacity: 0; }
         }
         
         /* Диагональное падение слева */
@@ -208,36 +251,61 @@
         }
         
         @keyframes cometFallDiagonalLeft {
-            0% { transform: translate(-100px, -100px) rotate(0deg); opacity: 1; }
-            100% { transform: translate(calc(100vw), calc(100vh)) rotate(180deg); opacity: 0; }
+            0% { transform: translate(-100px, -100px) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translate(calc(100vw), calc(100vh)) rotate(360deg); opacity: 0; }
         }
         
-        /* Опасная комета */
-        .comet.dangerous {
-            animation-duration: 3s !important;
-        }
-        
-        .comet.dangerous .comet-emoji {
-            filter: drop-shadow(0 0 25px rgba(255,0,0,0.9)) !important;
-            animation: dangerPulse 0.5s ease-in-out infinite;
-        }
-        
-        @keyframes dangerPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-        }
-        
-        /* ==================== ОБЛОМКИ КОМЕТ ==================== */
-        .debris {
+        /* ==================== УЛУЧШЕНИЯ КОРАБЛЯ ==================== */
+        .powerup {
             position: absolute;
-            z-index: 3;
+            z-index: 5;
             pointer-events: none;
-            animation: debrisFly 1s ease-out forwards;
+            width: 30px;
+            height: 30px;
+            animation: powerupFall 4s linear forwards;
         }
         
-        @keyframes debrisFly {
-            0% { transform: translate(0, 0) scale(1); opacity: 1; }
-            100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; }
+        .powerup .powerup-icon {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            background: rgba(0,0,0,0.6);
+            border: 2px solid var(--accent);
+            box-shadow: 0 0 20px rgba(255,215,0,0.6);
+            animation: powerupPulse 0.5s ease-in-out infinite alternate;
+        }
+        
+        .powerup.rapid .powerup-icon {
+            border-color: #ff6b00;
+            box-shadow: 0 0 20px rgba(255,100,0,0.6);
+        }
+        
+        .powerup.triple .powerup-icon {
+            border-color: #ff00ff;
+            box-shadow: 0 0 20px rgba(255,0,255,0.6);
+        }
+        
+        .powerup.damage .powerup-icon {
+            border-color: #ff0000;
+            box-shadow: 0 0 20px rgba(255,0,0,0.6);
+        }
+        
+        @keyframes powerupFall {
+            0% { transform: translateY(-50px); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(calc(100vh)); opacity: 0; }
+        }
+        
+        @keyframes powerupPulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
         }
         
         /* ==================== ВЗРЫВЫ ==================== */
@@ -245,12 +313,33 @@
             position: absolute;
             pointer-events: none;
             z-index: 7;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #fff, #ff8800, #ff4400, transparent);
             animation: explosionAnim 0.6s ease-out forwards;
         }
         
         @keyframes explosionAnim {
             0% { transform: scale(0.5); opacity: 1; }
             100% { transform: scale(2.5); opacity: 0; }
+        }
+        
+        /* ==================== ОБЛОМКИ ==================== */
+        .debris {
+            position: absolute;
+            z-index: 3;
+            pointer-events: none;
+            width: 8px;
+            height: 8px;
+            background: #ff8800;
+            border-radius: 50%;
+            animation: debrisFly 1s ease-out forwards;
+        }
+        
+        @keyframes debrisFly {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; }
         }
         
         /* ==================== ВЕРХНЯЯ ПАНЕЛЬ ==================== */
@@ -326,25 +415,45 @@
         .life-icon { font-size: 12px; transition: all 0.3s; }
         .life-icon.lost { opacity: 0.2; transform: scale(0.8); }
         
-        /* ==================== БОНУСЫ ==================== */
-        .bonus-drop {
+        /* ==================== ИНДИКАТОР СКОРОСТРЕЛЬНОСТИ ==================== */
+        #fireRateIndicator {
             position: absolute;
-            z-index: 5;
-            pointer-events: none;
-            animation: bonusDrop 3s ease-in forwards;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            z-index: 8;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            background: rgba(0,0,0,0.5);
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
         }
         
-        .bonus-drop .bonus-emoji {
-            display: block;
-            font-size: 25px;
-            filter: drop-shadow(0 0 15px rgba(255,255,255,0.3));
+        #fireRateIndicator .fire-rate-label {
+            color: rgba(255,255,255,0.5);
+            font-size: 8px;
+            letter-spacing: 1px;
         }
         
-        @keyframes bonusDrop {
-            0% { transform: translateY(-30px) scale(0.5); opacity: 0; }
-            10% { transform: translateY(0px) scale(1); opacity: 1; }
-            90% { opacity: 1; }
-            100% { transform: translateY(200px) scale(0.8); opacity: 0; }
+        #fireRateIndicator .fire-rate-bar {
+            width: 8px;
+            height: 100px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        #fireRateIndicator .fire-rate-fill {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: linear-gradient(to top, #ff6b00, #ffd700);
+            border-radius: 4px;
+            transition: height 0.3s ease;
         }
         
         /* ==================== КОМБО ==================== */
@@ -642,15 +751,17 @@
         
         /* ==================== АДАПТИВНОСТЬ ==================== */
         @media (max-width: 480px) {
-            #ship { width: 45px; height: 45px; }
-            #ship .ship-body .ship-emoji { font-size: 38px; }
-            .comet .comet-emoji { font-size: 32px; }
-            .comet.mega .comet-emoji { font-size: 48px; }
+            #ship { width: 40px; height: 40px; }
+            #ship .ship-emoji { font-size: 35px; }
+            .comet { width: 50px; height: 50px; }
+            .comet.mega { width: 70px; height: 70px; }
             #scoreInfo { font-size: 15px; }
             .top-button { width: 28px; height: 28px; font-size: 12px; }
             #coinsInfo { font-size: 10px; padding: 2px 8px; }
             .menu-stats { grid-template-columns: 1fr 1fr; }
             #comboText { font-size: 18px; }
+            #fireRateIndicator { right: 5px; }
+            #fireRateIndicator .fire-rate-bar { height: 80px; }
         }
         
         .hidden { display: none !important; }
@@ -690,6 +801,14 @@
                     <span class="ship-emoji" id="shipEmoji">🚀</span>
                     <div class="ship-glow"></div>
                 </div>
+            </div>
+        </div>
+        
+        <!-- Индикатор скорострельности -->
+        <div id="fireRateIndicator">
+            <div class="fire-rate-label">СКОРОСТЬ</div>
+            <div class="fire-rate-bar">
+                <div class="fire-rate-fill" id="fireRateFill" style="height: 20%;"></div>
             </div>
         </div>
         
@@ -885,8 +1004,10 @@
             levelUpScore: 10,
             maxLives: 3,
             cometSpawnInterval: 800,
+            powerupSpawnInterval: 5000,
             maxComets: 6,
-            bonusChance: 0.15,
+            maxPowerups: 2,
+            powerupChance: 0.3,
             shipSpeed: 8
         };
         
@@ -905,6 +1026,8 @@
             coins: parseInt(localStorage.getItem('coins') || '0'),
             totalScore: parseInt(localStorage.getItem('totalScore') || '0'),
             premium: localStorage.getItem('premium') === 'true',
+            fireRateLevel: 1,
+            maxFireRateLevel: 10,
             
             // Корабль
             ship: {
@@ -913,12 +1036,13 @@
                 y: 0,
                 targetX: 0,
                 targetY: 0,
-                shooting: false,
                 fireRate: 200,
-                lastShot: 0,
                 damage: 1,
                 bullets: 1,
-                speed: 1
+                speed: 1,
+                rapidFire: false,
+                tripleShot: false,
+                damageBoost: false
             },
             
             activePowerups: {},
@@ -934,12 +1058,12 @@
             legendary: { name: 'Легендарный', emoji: '👑', damage: 6, bullets: 4, fireRate: 120, speed: 1.5, price: 299, currency: 'real' }
         };
         
-        let gameTimers = { game: null, spawn: null, combo: null, powerup: null, shoot: null };
+        let gameTimers = { game: null, spawn: null, powerupSpawn: null, combo: null, powerup: null, shoot: null };
         let audioContext = null;
         let bgAnimationId = null;
         let comets = [];
         let bullets = [];
-        let bonuses = [];
+        let powerups = [];
         let shipAnimId = null;
         
         // ==================== ФОН ====================
@@ -1003,10 +1127,10 @@
                     case 'shoot':
                         osc.frequency.setValueAtTime(800, now);
                         osc.type = 'square';
-                        gain.gain.setValueAtTime(0.06, now);
-                        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.04);
+                        gain.gain.setValueAtTime(0.04, now);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.03);
                         osc.start(now);
-                        osc.stop(now + 0.04);
+                        osc.stop(now + 0.03);
                         break;
                     case 'hit':
                         [600, 800, 1000].forEach((f, i) => {
@@ -1044,7 +1168,7 @@
                             o.stop(now + i * 0.08 + 0.08);
                         });
                         break;
-                    case 'bonus':
+                    case 'powerup':
                         osc.frequency.setValueAtTime(1000, now);
                         osc.type = 'sine';
                         gain.gain.setValueAtTime(0.12, now);
@@ -1139,7 +1263,7 @@
         // ==================== ТАЙМЕРЫ ====================
         function stopTimers() {
             Object.values(gameTimers).forEach(t => { if (t) { clearInterval(t); clearTimeout(t); } });
-            gameTimers = { game: null, spawn: null, combo: null, powerup: null, shoot: null };
+            gameTimers = { game: null, spawn: null, powerupSpawn: null, combo: null, powerup: null, shoot: null };
             if (shipAnimId) { cancelAnimationFrame(shipAnimId); shipAnimId = null; }
         }
         
@@ -1158,19 +1282,38 @@
                 if (!state.isPaused && !state.gameOver) spawnComet();
             }, CONFIG.cometSpawnInterval);
             
+            gameTimers.powerupSpawn = setInterval(() => {
+                if (!state.isPaused && !state.gameOver && Math.random() < CONFIG.powerupChance) {
+                    spawnPowerup();
+                }
+            }, CONFIG.powerupSpawnInterval);
+            
             // Автоматическая стрельба
             startAutoShoot();
         }
         
         function startAutoShoot() {
             const shipData = SHIPS[state.ship.type];
-            const fireRate = shipData.fireRate / (state.ship.speed || 1);
+            let fireRate = shipData.fireRate;
+            
+            // Применяем бонусы скорострельности
+            if (state.ship.rapidFire) fireRate *= 0.5;
+            
+            // Прогрессия скорострельности
+            const fireRateMultiplier = 1 - (state.fireRateLevel - 1) * 0.07;
+            fireRate *= Math.max(0.3, fireRateMultiplier);
             
             gameTimers.shoot = setInterval(() => {
                 if (!state.isPaused && !state.gameOver && state.ship.y > 0) {
                     shoot();
                 }
-            }, fireRate);
+            }, Math.max(50, fireRate));
+        }
+        
+        function updateFireRateIndicator() {
+            const fill = $('fireRateFill');
+            const percent = (state.fireRateLevel / state.maxFireRateLevel) * 100;
+            fill.style.height = percent + '%';
         }
         
         // ==================== КОРАБЛЬ ====================
@@ -1178,27 +1321,27 @@
             const field = getField();
             const rect = field.getBoundingClientRect();
             
-            state.ship.x = rect.width / 2 - 30;
-            state.ship.y = rect.height - 80;
+            state.ship.x = rect.width / 2 - 25;
+            state.ship.y = rect.height - 60;
             state.ship.targetX = state.ship.x;
             state.ship.targetY = state.ship.y;
             
             updateShipVisual();
             
-            // Управление касанием/мышью
+            // Управление касанием по всему полю
             field.addEventListener('touchmove', (e) => {
                 e.preventDefault();
                 const touch = e.touches[0];
                 const rect = field.getBoundingClientRect();
-                const x = touch.clientX - rect.left - 30;
-                const y = touch.clientY - rect.top - 30;
+                const x = touch.clientX - rect.left - 25;
+                const y = touch.clientY - rect.top - 25;
                 moveShip(x, y);
             });
             
             field.addEventListener('mousemove', (e) => {
                 const rect = field.getBoundingClientRect();
-                const x = e.clientX - rect.left - 30;
-                const y = e.clientY - rect.top - 30;
+                const x = e.clientX - rect.left - 25;
+                const y = e.clientY - rect.top - 25;
                 moveShip(x, y);
             });
             
@@ -1210,22 +1353,20 @@
             const field = getField();
             const rect = field.getBoundingClientRect();
             
-            state.ship.targetX = Math.max(0, Math.min(x, rect.width - 60));
-            state.ship.targetY = Math.max(0, Math.min(y, rect.height - 60));
+            state.ship.targetX = Math.max(0, Math.min(x, rect.width - 50));
+            state.ship.targetY = Math.max(0, Math.min(y, rect.height - 50));
         }
         
         function animateShip() {
             const dx = state.ship.targetX - state.ship.x;
             const dy = state.ship.targetY - state.ship.y;
             
-            state.ship.x += dx * 0.15;
-            state.ship.y += dy * 0.15;
+            state.ship.x += dx * 0.3;
+            state.ship.y += dy * 0.3;
             
             const ship = $('ship');
             ship.style.left = state.ship.x + 'px';
             ship.style.top = state.ship.y + 'px';
-            
-            // Корабль всегда смотрит вверх, без поворота
             
             shipAnimId = requestAnimationFrame(animateShip);
         }
@@ -1253,42 +1394,39 @@
             if (state.isPaused || state.gameOver) return;
             
             const field = getField();
-            const shipData = SHIPS[state.ship.type];
-            const count = shipData.bullets;
-            const spread = count > 1 ? 20 : 0;
+            let bulletCount = state.ship.bullets;
             
-            for (let i = 0; i < count; i++) {
-                const offset = count > 1 ? (i - (count-1)/2) * spread : 0;
-                createBullet(state.ship.x + 30, state.ship.y, offset);
+            // Тройной выстрел
+            if (state.ship.tripleShot) bulletCount = 3;
+            
+            const spread = bulletCount > 1 ? 20 : 0;
+            
+            for (let i = 0; i < bulletCount; i++) {
+                const offset = bulletCount > 1 ? (i - (bulletCount-1)/2) * spread : 0;
+                createBullet(state.ship.x + 25, state.ship.y, offset);
             }
             
             playSound('shoot');
-            state.ship.lastShot = Date.now();
         }
         
         function createBullet(x, y, offset = 0) {
             const field = getField();
             const bullet = document.createElement('div');
             bullet.className = 'bullet';
-            const emoji = document.createElement('span');
-            emoji.className = 'bullet-emoji';
-            emoji.textContent = '⚡';
-            bullet.appendChild(emoji);
             bullet.style.left = (x + offset) + 'px';
             bullet.style.top = y + 'px';
-            bullet.style.setProperty('--tx', offset + 'px');
             field.appendChild(bullet);
             
             // Проверка попаданий
             const bulletId = setTimeout(() => {
                 bullet.remove();
                 checkHit(x + offset, y);
-            }, 100);
+            }, 50);
             
             setTimeout(() => {
                 if (bullet.parentNode) bullet.remove();
                 clearTimeout(bulletId);
-            }, 400);
+            }, 500);
         }
         
         function checkHit(x, y) {
@@ -1309,7 +1447,7 @@
             }
         }
         
-        // ==================== КОМЕТЫ (ПАДАЮТ СВЕРХУ И ПО ДИАГОНАЛИ) ====================
+        // ==================== РЕАЛИСТИЧНЫЕ КОМЕТЫ ====================
         function spawnComet() {
             if (comets.length >= CONFIG.maxComets) return;
             
@@ -1319,30 +1457,35 @@
             const comet = document.createElement('div');
             comet.className = 'comet';
             
+            // Создаем реалистичную комету
+            const core = document.createElement('div');
+            core.className = 'comet-core';
+            comet.appendChild(core);
+            
+            const tail = document.createElement('div');
+            tail.className = 'comet-tail';
+            comet.appendChild(tail);
+            
             // Определяем тип кометы
             const type = Math.random();
             let health = 1;
             let points = 1;
-            let emoji = '☄️';
             let isDangerous = false;
-            let trajectory = 'down'; // down, diagonal-right, diagonal-left
+            let trajectory = 'down';
             
             if (type < 0.6) {
                 // Обычная комета
                 health = 1;
                 points = 1;
-                emoji = '☄️';
             } else if (type < 0.85) {
                 // Золотая комета
                 health = 1;
                 points = 3;
-                emoji = '🌟';
                 comet.classList.add('golden');
             } else {
                 // Мега комета
                 health = 3;
                 points = 5;
-                emoji = '💥';
                 comet.classList.add('mega');
             }
             
@@ -1355,39 +1498,32 @@
             
             // Определяем траекторию падения
             if (state.level >= 2 && Math.random() < 0.3) {
-                // Диагональное падение с правой стороны
                 trajectory = 'diagonal-right';
                 comet.classList.add('diagonal-right');
             } else if (state.level >= 3 && Math.random() < 0.3) {
-                // Диагональное падение с левой стороны
                 trajectory = 'diagonal-left';
                 comet.classList.add('diagonal-left');
             }
             
-            const emojiSpan = document.createElement('span');
-            emojiSpan.className = 'comet-emoji';
-            emojiSpan.textContent = emoji;
-            comet.appendChild(emojiSpan);
-            
-            // Позиционирование в зависимости от траектории
+            // Позиционирование
             let x, y;
-            const duration = 4000 + Math.random() * 2000; // 4-6 секунд
+            const duration = 4000 + Math.random() * 2000;
             
             if (trajectory === 'down') {
                 x = Math.random() * (rect.width - 60) + 30;
-                y = -50;
+                y = -60;
                 comet.style.left = x + 'px';
                 comet.style.top = y + 'px';
                 comet.style.animationDuration = duration + 'ms';
             } else if (trajectory === 'diagonal-right') {
-                x = rect.width + 50;
-                y = -50;
+                x = rect.width + 60;
+                y = -60;
                 comet.style.left = x + 'px';
                 comet.style.top = y + 'px';
                 comet.style.animationDuration = (duration * 1.5) + 'ms';
             } else if (trajectory === 'diagonal-left') {
-                x = -50;
-                y = -50;
+                x = -60;
+                y = -60;
                 comet.style.left = x + 'px';
                 comet.style.top = y + 'px';
                 comet.style.animationDuration = (duration * 1.5) + 'ms';
@@ -1414,7 +1550,6 @@
                 if (comet.parentNode) {
                     comet.remove();
                     comets = comets.filter(c => c !== cometData);
-                    // Если опасная комета достигла низа - потеря жизни
                     if (isDangerous && !state.gameOver && !state.isPaused) {
                         loseLife();
                         showComboText('⚠️ Комета достигла низа! -1 жизнь', '#ff4444');
@@ -1453,8 +1588,15 @@
                 // Создаем обломки
                 createDebris(comet.element);
                 
-                if (Math.random() * 100 <= CONFIG.bonusChance * 100 && !state.bonusActive) {
-                    spawnBonus(comet.element);
+                // Увеличиваем скорострельность
+                if (state.fireRateLevel < state.maxFireRateLevel && Math.random() < 0.3) {
+                    state.fireRateLevel++;
+                    updateFireRateIndicator();
+                    if (gameTimers.shoot) {
+                        clearInterval(gameTimers.shoot);
+                        startAutoShoot();
+                    }
+                    showComboText('⚡ Скорострельность +1!', '#FFD700');
                 }
                 
                 comet.element.remove();
@@ -1481,8 +1623,6 @@
             for (let i = 0; i < 12; i++) {
                 const debris = document.createElement('div');
                 debris.className = 'debris';
-                debris.textContent = ['💫', '✨', '⭐️', '🌟', '🔥'][Math.floor(Math.random() * 5)];
-                debris.style.fontSize = (Math.random() * 10 + 8) + 'px';
                 debris.style.left = (rect.left - fieldRect.left + rect.width/2) + 'px';
                 debris.style.top = (rect.top - fieldRect.top + rect.height/2) + 'px';
                 
@@ -1504,69 +1644,79 @@
             
             const explosion = document.createElement('div');
             explosion.className = 'explosion';
-            explosion.textContent = '💥';
-            explosion.style.fontSize = '40px';
-            explosion.style.left = (rect.left - fieldRect.left + rect.width/2 - 20) + 'px';
-            explosion.style.top = (rect.top - fieldRect.top + rect.height/2 - 20) + 'px';
+            explosion.style.left = (rect.left - fieldRect.left + rect.width/2 - 30) + 'px';
+            explosion.style.top = (rect.top - fieldRect.top + rect.height/2 - 30) + 'px';
             field.appendChild(explosion);
             
             setTimeout(() => explosion.remove(), 600);
         }
         
-        // ==================== БОНУСЫ ====================
-        function spawnBonus(element) {
-            if (state.bonusActive) return;
+        // ==================== УЛУЧШЕНИЯ КОРАБЛЯ ====================
+        function spawnPowerup() {
+            if (powerups.length >= CONFIG.maxPowerups) return;
             
             const field = getField();
-            const rect = element.getBoundingClientRect();
-            const fieldRect = field.getBoundingClientRect();
+            const rect = field.getBoundingClientRect();
             
-            const bonus = document.createElement('div');
-            bonus.className = 'bonus-drop';
+            const powerup = document.createElement('div');
+            powerup.className = 'powerup';
             
             const types = [
-                { emoji: '❤️', effect: () => { state.score += 3; state.coins += 3; showComboText('❤️ +3', '#FF6B6B'); } },
-                { emoji: '⏰', effect: () => { state.timeLeft += 5; updateTimer(); showComboText('⏰ +5сек', '#4ECDC4'); } },
-                { emoji: '🌟', effect: () => { state.score += 5; state.coins += 5; showComboText('🌟 +5', '#FFD93D'); } },
-                { emoji: '❤️‍🔥', effect: () => { state.lives = Math.min(state.lives + 1, CONFIG.maxLives); updateLives(); showComboText('❤️‍🔥 +1 жизнь', '#FF1493'); } }
+                { type: 'rapid', icon: '⚡', effect: () => { state.ship.rapidFire = true; setTimeout(() => { state.ship.rapidFire = false; if (gameTimers.shoot) { clearInterval(gameTimers.shoot); startAutoShoot(); } }, 10000); showComboText('⚡ Ускоренная стрельба!', '#FF6B00'); } },
+                { type: 'triple', icon: '🔱', effect: () => { state.ship.tripleShot = true; setTimeout(() => { state.ship.tripleShot = false; }, 10000); showComboText('🔱 Тройной выстрел!', '#FF00FF'); } },
+                { type: 'damage', icon: '💥', effect: () => { state.ship.damageBoost = true; setTimeout(() => { state.ship.damageBoost = false; }, 10000); showComboText('💥 Усиленный урон!', '#FF0000'); } }
             ];
             
-            const type = types[Math.floor(Math.random() * types.length)];
-            const emojiSpan = document.createElement('span');
-            emojiSpan.className = 'bonus-emoji';
-            emojiSpan.textContent = type.emoji;
-            bonus.appendChild(emojiSpan);
+            const selectedType = types[Math.floor(Math.random() * types.length)];
+            powerup.classList.add(selectedType.type);
             
-            bonus.style.left = (rect.left - fieldRect.left + rect.width/2) + 'px';
-            bonus.style.top = '-20px';
+            const icon = document.createElement('div');
+            icon.className = 'powerup-icon';
+            icon.textContent = selectedType.icon;
+            powerup.appendChild(icon);
             
-            field.appendChild(bonus);
-            state.bonusActive = true;
+            const x = Math.random() * (rect.width - 40) + 20;
+            powerup.style.left = x + 'px';
+            powerup.style.top = '-30px';
             
-            // Сбор бонуса при касании кораблем
+            field.appendChild(powerup);
+            
+            const powerupData = {
+                element: powerup,
+                effect: selectedType.effect,
+                x: x,
+                y: -30
+            };
+            
+            powerups.push(powerupData);
+            
+            // Проверка сбора улучшения
             const checkCollect = setInterval(() => {
                 if (state.isPaused || state.gameOver) return;
                 const shipRect = $('ship').getBoundingClientRect();
-                const bonusRect = bonus.getBoundingClientRect();
-                if (shipRect.left < bonusRect.right && shipRect.right > bonusRect.left &&
-                    shipRect.top < bonusRect.bottom && shipRect.bottom > bonusRect.top) {
-                    type.effect();
-                    playSound('bonus');
-                    vibrate(20);
-                    bonus.remove();
-                    state.bonusActive = false;
-                    updateUI();
+                const powerupRect = powerup.getBoundingClientRect();
+                if (shipRect.left < powerupRect.right && shipRect.right > powerupRect.left &&
+                    shipRect.top < powerupRect.bottom && shipRect.bottom > powerupRect.top) {
+                    selectedType.effect();
+                    playSound('powerup');
+                    vibrate(30);
+                    powerup.remove();
+                    powerups = powerups.filter(p => p !== powerupData);
+                    if (gameTimers.shoot) {
+                        clearInterval(gameTimers.shoot);
+                        startAutoShoot();
+                    }
                     clearInterval(checkCollect);
                 }
             }, 50);
             
             setTimeout(() => {
-                if (bonus.parentNode) {
-                    bonus.remove();
-                    state.bonusActive = false;
+                if (powerup.parentNode) {
+                    powerup.remove();
+                    powerups = powerups.filter(p => p !== powerupData);
                     clearInterval(checkCollect);
                 }
-            }, 3000);
+            }, 4000);
         }
         
         // ==================== ЖИЗНИ ====================
@@ -1604,7 +1754,7 @@
         }
         
         function updateTimer() {
-            // Визуальное отображение таймера (можно добавить)
+            // Визуальное отображение таймера
         }
         
         function updateProgress() {
@@ -1639,9 +1789,9 @@
             state.gameOver = true;
             stopTimers();
             
-            document.querySelectorAll('.comet, .bonus-drop, .bullet').forEach(el => el.remove());
+            document.querySelectorAll('.comet, .powerup, .bullet').forEach(el => el.remove());
             comets = [];
-            bonuses = [];
+            powerups = [];
             bullets = [];
             
             updateLeaderboard(state.score);
@@ -1672,7 +1822,6 @@
         
         // ==================== МАГАЗИН КОРАБЛЕЙ ====================
         function updateShopUI() {
-            // Корабли
             Object.keys(SHIPS).forEach(key => {
                 const el = $('ship' + key.charAt(0).toUpperCase() + key.slice(1) + 'Price');
                 if (el) {
@@ -1693,7 +1842,6 @@
                 }
             });
             
-            // Усиления
             Object.keys(POWERUP_PRICES).forEach(key => {
                 const el = $(key + 'Price');
                 if (el) {
@@ -1716,7 +1864,6 @@
             }
             
             if (localStorage.getItem('ship_' + type) === 'true') {
-                // Надеть корабль
                 state.ship.type = type;
                 localStorage.setItem('equippedShip', type);
                 updateShipVisual();
@@ -1725,7 +1872,6 @@
                 return;
             }
             
-            // Покупка
             if (ship.currency === 'real') {
                 buyRealShip(type);
                 return;
@@ -1745,7 +1891,7 @@
                 updateShipVisual();
                 updateShopUI();
                 updateUI();
-                playSound('bonus');
+                playSound('powerup');
                 showComboText('🚀 ' + ship.name + ' куплен!', '#FFD700');
             }
         }
@@ -1770,7 +1916,7 @@
                     localStorage.setItem('equippedShip', type);
                     updateShipVisual();
                     updateShopUI();
-                    playSound('bonus');
+                    playSound('powerup');
                     showComboText('👑 ' + ship.name + ' активирован!', '#FFD700');
                 }
             }
@@ -1788,7 +1934,7 @@
                 if (!state.activePowerups[type]) {
                     activatePowerup(type);
                     updateShopUI();
-                    playSound('bonus');
+                    playSound('powerup');
                     showComboText('✅ ' + getPowerupName(type) + ' активирован!', '#4CAF50');
                 } else {
                     alert('Усиление уже активно!');
@@ -1808,7 +1954,7 @@
                 localStorage.setItem('powerup_' + type, 'true');
                 activatePowerup(type);
                 updateShopUI();
-                playSound('bonus');
+                playSound('powerup');
                 showComboText('✅ ' + getPowerupName(type) + ' активирован!', '#4CAF50');
             }
         }
@@ -1860,7 +2006,7 @@
                     localStorage.setItem('coins', state.coins);
                     updateUI();
                     updateShopUI();
-                    playSound('bonus');
+                    playSound('powerup');
                     showComboText('💰 +' + amount + ' монет!', '#FFD700');
                 }
             }
@@ -1901,7 +2047,7 @@
             state.coins += 10;
             localStorage.setItem('coins', state.coins);
             updateUI();
-            playSound('bonus');
+            playSound('powerup');
             $('gameOverOverlay').classList.remove('active');
             startGame();
         }
@@ -1929,24 +2075,28 @@
             state.isPaused = false;
             state.activePowerups = {};
             state.bonusActive = false;
+            state.fireRateLevel = 1;
+            state.ship.rapidFire = false;
+            state.ship.tripleShot = false;
+            state.ship.damageBoost = false;
             
             $('gameOverOverlay').classList.remove('active');
             $('pauseOverlay').classList.remove('active');
             $('leaderboardOverlay').classList.remove('active');
             $('menuOverlay').classList.remove('active');
             
-            document.querySelectorAll('.comet, .bonus-drop, .bullet, .explosion, .debris').forEach(el => el.remove());
+            document.querySelectorAll('.comet, .powerup, .bullet, .explosion, .debris').forEach(el => el.remove());
             comets = [];
-            bonuses = [];
+            powerups = [];
             bullets = [];
             
-            // Инициализация корабля
             initShip();
             
             updateUI();
             updateTimer();
             updateLives();
             updateProgress();
+            updateFireRateIndicator();
             
             if (!localStorage.getItem('isAdFree')) $('adBanner').classList.add('active');
             
@@ -1954,7 +2104,6 @@
             startTimers();
             if (state.soundOn) setTimeout(() => playSound('levelup'), 200);
             
-            // Применяем премиум-бонусы
             if (state.premium) {
                 showComboText('👑 Премиум активен!', '#FFD700');
             }
@@ -1974,7 +2123,6 @@
             if (localStorage.getItem('isAdFree')) $('adBanner').classList.remove('active');
             if (localStorage.getItem('premium') === 'true') state.premium = true;
             
-            // Инициализация кораблей
             if (!localStorage.getItem('ship_initialized')) {
                 localStorage.setItem('ship_basic', 'true');
                 localStorage.setItem('equippedShip', 'basic');
@@ -2004,8 +2152,9 @@
         });
         
         console.log('☄️ Космический стрелок - Охота на кометы');
-        console.log('🎯 Корабль всегда смотрит вверх, кометы падают сверху!');
-        console.log('📐 На высоких уровнях кометы летят по диагонали!');
+        console.log('🎯 Реалистичные кометы с хвостами!');
+        console.log('⚡ Улучшения: ускорение, тройной выстрел, усиленный урон!');
+        console.log('📈 Прогрессия скорострельности!');
         console.log('💰 Реквизиты: 40817810140101612217');
     </script>
 </body>
