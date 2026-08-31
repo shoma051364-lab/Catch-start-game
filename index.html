@@ -98,13 +98,16 @@
             transition: all 0.1s ease-out;
             width: 60px;
             height: 60px;
+            /* Корабль всегда смотрит вверх */
+            transform: rotate(0deg);
         }
         
         #ship .ship-body {
             width: 100%;
             height: 100%;
             position: relative;
-            transition: transform 0.3s;
+            /* Убираем поворот, корабль всегда смотрит вверх */
+            transform: none !important;
         }
         
         #ship .ship-body .ship-emoji {
@@ -112,6 +115,8 @@
             display: block;
             filter: drop-shadow(0 0 20px rgba(108,60,225,0.5));
             transition: all 0.3s;
+            /* Корабль всегда направлен вверх */
+            transform: rotate(-90deg);
         }
         
         #ship .ship-glow {
@@ -141,21 +146,20 @@
         .bullet .bullet-emoji {
             display: block;
             font-size: 16px;
-            animation: bulletFly 0.4s ease-out forwards;
+            animation: bulletFlyUp 0.4s ease-out forwards;
         }
         
-        @keyframes bulletFly {
+        @keyframes bulletFlyUp {
             0% { transform: scale(0.5); opacity: 1; }
             100% { transform: translateY(-80px) scale(1.5); opacity: 0; }
         }
         
-        /* ==================== КОМЕТЫ (ГЛАВНЫЕ ЦЕЛИ) ==================== */
+        /* ==================== КОМЕТЫ (ПАДАЮТ СВЕРХУ) ==================== */
         .comet {
             position: absolute;
             z-index: 5;
             pointer-events: none;
-            cursor: crosshair;
-            animation: cometFloat 2s ease-in-out infinite;
+            animation: cometFallDown linear forwards;
         }
         
         .comet .comet-emoji {
@@ -183,19 +187,44 @@
             100% { transform: scale(2); opacity: 0; }
         }
         
-        @keyframes cometFloat {
-            0%, 100% { transform: translateY(0px) rotate(-5deg); }
-            50% { transform: translateY(-10px) rotate(5deg); }
+        @keyframes cometFallDown {
+            0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(calc(100vh)) rotate(180deg); opacity: 0; }
         }
         
-        /* Опасная комета (та, которую нельзя пропустить) */
+        /* Диагональное падение справа */
+        .comet.diagonal-right {
+            animation: cometFallDiagonalRight linear forwards;
+        }
+        
+        @keyframes cometFallDiagonalRight {
+            0% { transform: translate(100px, -100px) rotate(0deg); opacity: 1; }
+            100% { transform: translate(calc(-100vw), calc(100vh)) rotate(180deg); opacity: 0; }
+        }
+        
+        /* Диагональное падение слева */
+        .comet.diagonal-left {
+            animation: cometFallDiagonalLeft linear forwards;
+        }
+        
+        @keyframes cometFallDiagonalLeft {
+            0% { transform: translate(-100px, -100px) rotate(0deg); opacity: 1; }
+            100% { transform: translate(calc(100vw), calc(100vh)) rotate(180deg); opacity: 0; }
+        }
+        
+        /* Опасная комета */
         .comet.dangerous {
-            animation: cometDanger 1.5s ease-in-out infinite;
+            animation-duration: 3s !important;
         }
         
-        @keyframes cometDanger {
-            0%, 100% { transform: translateY(0px) scale(1); }
-            50% { transform: translateY(-15px) scale(1.1); }
+        .comet.dangerous .comet-emoji {
+            filter: drop-shadow(0 0 25px rgba(255,0,0,0.9)) !important;
+            animation: dangerPulse 0.5s ease-in-out infinite;
+        }
+        
+        @keyframes dangerPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
         }
         
         /* ==================== ОБЛОМКИ КОМЕТ ==================== */
@@ -617,7 +646,6 @@
             #ship .ship-body .ship-emoji { font-size: 38px; }
             .comet .comet-emoji { font-size: 32px; }
             .comet.mega .comet-emoji { font-size: 48px; }
-            .target-star .star-emoji { font-size: 24px; }
             #scoreInfo { font-size: 15px; }
             .top-button { width: 28px; height: 28px; font-size: 12px; }
             #coinsInfo { font-size: 10px; padding: 2px 8px; }
@@ -1197,11 +1225,7 @@
             ship.style.left = state.ship.x + 'px';
             ship.style.top = state.ship.y + 'px';
             
-            // Поворот в сторону движения
-            if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
-                const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-                ship.querySelector('.ship-body').style.transform = `rotate(${angle + 90}deg)`;
-            }
+            // Корабль всегда смотрит вверх, без поворота
             
             shipAnimId = requestAnimationFrame(animateShip);
         }
@@ -1285,7 +1309,7 @@
             }
         }
         
-        // ==================== КОМЕТЫ (ГЛАВНЫЕ ЦЕЛИ) ====================
+        // ==================== КОМЕТЫ (ПАДАЮТ СВЕРХУ И ПО ДИАГОНАЛИ) ====================
         function spawnComet() {
             if (comets.length >= CONFIG.maxComets) return;
             
@@ -1301,6 +1325,7 @@
             let points = 1;
             let emoji = '☄️';
             let isDangerous = false;
+            let trajectory = 'down'; // down, diagonal-right, diagonal-left
             
             if (type < 0.6) {
                 // Обычная комета
@@ -1328,15 +1353,45 @@
                 points *= 2;
             }
             
+            // Определяем траекторию падения
+            if (state.level >= 2 && Math.random() < 0.3) {
+                // Диагональное падение с правой стороны
+                trajectory = 'diagonal-right';
+                comet.classList.add('diagonal-right');
+            } else if (state.level >= 3 && Math.random() < 0.3) {
+                // Диагональное падение с левой стороны
+                trajectory = 'diagonal-left';
+                comet.classList.add('diagonal-left');
+            }
+            
             const emojiSpan = document.createElement('span');
             emojiSpan.className = 'comet-emoji';
             emojiSpan.textContent = emoji;
             comet.appendChild(emojiSpan);
             
-            const x = Math.random() * (rect.width - 60) + 30;
-            const y = Math.random() * (rect.height - 100) + 30;
-            comet.style.left = x + 'px';
-            comet.style.top = y + 'px';
+            // Позиционирование в зависимости от траектории
+            let x, y;
+            const duration = 4000 + Math.random() * 2000; // 4-6 секунд
+            
+            if (trajectory === 'down') {
+                x = Math.random() * (rect.width - 60) + 30;
+                y = -50;
+                comet.style.left = x + 'px';
+                comet.style.top = y + 'px';
+                comet.style.animationDuration = duration + 'ms';
+            } else if (trajectory === 'diagonal-right') {
+                x = rect.width + 50;
+                y = -50;
+                comet.style.left = x + 'px';
+                comet.style.top = y + 'px';
+                comet.style.animationDuration = (duration * 1.5) + 'ms';
+            } else if (trajectory === 'diagonal-left') {
+                x = -50;
+                y = -50;
+                comet.style.left = x + 'px';
+                comet.style.top = y + 'px';
+                comet.style.animationDuration = (duration * 1.5) + 'ms';
+            }
             
             field.appendChild(comet);
             
@@ -1347,25 +1402,26 @@
                 health: health,
                 points: points,
                 isDangerous: isDangerous,
+                trajectory: trajectory,
                 startTime: Date.now(),
-                lifeTime: 5000 + Math.random() * 3000 // 5-8 секунд на уничтожение
+                lifeTime: duration
             };
             
             comets.push(cometData);
             
-            // Автоматическое исчезновение
+            // Автоматическое удаление после завершения анимации
             setTimeout(() => {
                 if (comet.parentNode) {
                     comet.remove();
                     comets = comets.filter(c => c !== cometData);
-                    // Если опасная комета не была уничтожена - потеря жизни
+                    // Если опасная комета достигла низа - потеря жизни
                     if (isDangerous && !state.gameOver && !state.isPaused) {
                         loseLife();
-                        showComboText('⚠️ Комета ушла! -1 жизнь', '#ff4444');
+                        showComboText('⚠️ Комета достигла низа! -1 жизнь', '#ff4444');
                         playSound('warning');
                     }
                 }
-            }, cometData.lifeTime);
+            }, duration + 100);
         }
         
         function hitComet(comet) {
@@ -1948,7 +2004,8 @@
         });
         
         console.log('☄️ Космический стрелок - Охота на кометы');
-        console.log('🎯 Стреляй по кометам, чтобы выжить!');
+        console.log('🎯 Корабль всегда смотрит вверх, кометы падают сверху!');
+        console.log('📐 На высоких уровнях кометы летят по диагонали!');
         console.log('💰 Реквизиты: 40817810140101612217');
     </script>
 </body>
