@@ -1,0 +1,885 @@
+import SwiftUI
+import AVFoundation
+import UIKit
+import Observation
+import CoreHaptics
+
+// MARK: - Звуковой менеджер (iOS 26+)
+@Observable
+final class SoundManager {
+    var isSoundOn: Bool {
+        didSet {
+            UserDefaults.standard.set(isSoundOn, forKey: "soundEnabled")
+        }
+    }
+    
+    private var audioPlayer: AVAudioPlayer?
+    private var hapticEngine: CHHapticEngine?
+    
+    init() {
+        self.isSoundOn = UserDefaults.standard.bool(forKey: "soundEnabled")
+        setupHaptics()
+    }
+    
+    private func setupHaptics() {
+        guard CHHapticEngine.capabilitiesForHardware().supportsHaptics else { return }
+        do {
+            hapticEngine = try CHHapticEngine()
+            try hapticEngine?.start()
+        } catch {
+            print("Haptics error: \(error)")
+        }
+    }
+    
+    func playSound(named name: String) {
+        guard isSoundOn else { return }
+        
+        if let url = Bundle.main.url(forResource: name, withExtension: "mp3") {
+            do {
+                audioPlayer = try AVAudioPlayer(contentsOf: url)
+                audioPlayer?.play()
+            } catch {
+                playSystemSound(for: name)
+            }
+        } else {
+            playSystemSound(for: name)
+        }
+    }
+    
+    func playHaptic(type: HapticType) {
+        guard CHHapticEngine.capabilitiesForHardware().supportsHaptics else { return }
+        
+        var events: [CHHapticEvent] = []
+        
+        switch type {
+        case .tap:
+            let intensity = CHHapticEventParameter(parameterID: .hapticIntensity, value: 0.8)
+            let sharpness = CHHapticEventParameter(parameterID: .hapticSharpness, value: 0.5)
+            let event = CHHapticEvent(eventType: .hapticTransient, parameters: [intensity, sharpness], relativeTime: 0)
+            events.append(event)
+            
+        case .success:
+            let intensity = CHHapticEventParameter(parameterID: .hapticIntensity, value: 1.0)
+            let sharpness = CHHapticEventParameter(parameterID: .hapticSharpness, value: 0.3)
+            let event = CHHapticEvent(eventType: .hapticTransient, parameters: [intensity, sharpness], relativeTime: 0)
+            events.append(event)
+            
+        case .error:
+            let intensity = CHHapticEventParameter(parameterID: .hapticIntensity, value: 1.0)
+            let sharpness = CHHapticEventParameter(parameterID: .hapticSharpness, value: 1.0)
+            let event = CHHapticEvent(eventType: .hapticTransient, parameters: [intensity, sharpness], relativeTime: 0)
+            events.append(event)
+        }
+        
+        do {
+            let pattern = try CHHapticPattern(events: events, parameterCurves: [])
+            let player = try hapticEngine?.makePlayer(with: pattern)
+            try player?.start(atTime: 0)
+        } catch {
+            print("Haptic play error: \(error)")
+        }
+    }
+    
+    private func playSystemSound(for name: String) {
+        let soundID: SystemSoundID
+        switch name {
+        case "correct": soundID = 1104
+        case "wrong": soundID = 1053
+        case "levelup": soundID = 1025
+        case "gameover": soundID = 1052
+        case "bonus": soundID = 1024
+        default: soundID = 1104
+        }
+        AudioServicesPlaySystemSound(soundID)
+    }
+}
+
+enum HapticType {
+    case tap
+    case success
+    case error
+}
+
+// MARK: - Рекорды
+@Observable
+final class HighScoreManager {
+    var highScores: [ScoreRecord] = []
+    private let scoresKey = "highScores"
+    
+    init() {
+        loadScores()
+    }
+    
+    func addScore(score: Int, level: Int, date: Date = Date()) {
+        let record = ScoreRecord(score: score, level: level, date: date)
+        highScores.append(record)
+        highScores.sort { $0.score > $1.score }
+        if highScores.count > 10 {
+            highScores.removeLast()
+        }
+        saveScores()
+    }
+    
+    private func saveScores() {
+        if let encoded = try? JSONEncoder().encode(highScores) {
+            UserDefaults.standard.set(encoded, forKey: scoresKey)
+        }
+    }
+    
+    private func loadScores() {
+        if let data = UserDefaults.standard.data(forKey: scoresKey),
+           let decoded = try? JSONDecoder().decode([ScoreRecord].self, from: data) {
+            highScores = decoded
+        }
+    }
+}
+
+struct ScoreRecord: Codable, Identifiable, Hashable {
+    let id = UUID()
+    let score: Int
+    let level: Int
+    let date: Date
+}
+
+// MARK: - Частица
+struct Particle: Identifiable {
+    let id = UUID()
+    var position: CGPoint
+    let color: Color
+    let size: CGFloat
+    var opacity: Double
+}
+
+// MARK: - Бонусы
+enum BonusType: String, CaseIterable {
+    case heart, clock, star
+    
+    var symbol: String {
+        switch self {
+        case .heart: return "heart.fill"
+        case .clock: return "clock.fill"
+        case .star: return "sparkles"
+        }
+    }
+    
+    var color: Color {
+        switch self {
+        case .heart: return .pink
+        case .clock: return .cyan
+        case .star: return .orange
+        }
+    }
+    
+    var effect: String {
+        switch self {
+        case .heart: return "+3 очка"
+        case .clock: return "+5 секунд"
+        case .star: return "+5 очков"
+        }
+    }
+}
+
+// MARK: - Главная игра (iOS 26+)
+struct GameView: View {
+    @State private var soundManager = SoundManager()
+    @State private var highScoreManager = HighScoreManager()
+    
+    @State private var score = 0
+    @State private var level = 1
+    @State private var timeLeft = 10
+    @State private var starPosition = CGPoint(x: 150, y: 300)
+    @State private var isStarVisible = true
+    @State private var timer: Timer?
+    @State private var starTimer: Timer?
+    @State private var gameOver = false
+    @State private var isBadStar = false
+    @State private var starScale: CGFloat = 1.0
+    @State private var starRotation: Double = 0
+    @State private var particles: [Particle] = []
+    @State private var combo = 0
+    @State private var comboText = ""
+    @State private var showBonus = false
+    @State private var bonusType: BonusType = .heart
+    @State private var bonusPosition = CGPoint(x: 200, y: 400)
+    @State private var showHighScores = false
+    @State private var isPaused = false
+    @State private var isImmersive = false
+    
+    var body: some View {
+        GeometryReader { geometry in
+            ZStack {
+                // Анимированный градиентный фон
+                LinearGradient(
+                    colors: backgroundColors,
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea()
+                .animation(.easeInOut(duration: 2).repeatForever(autoreverses: true), value: level)
+                
+                // Частицы
+                ForEach(particles) { particle in
+                    Circle()
+                        .fill(particle.color)
+                        .frame(width: particle.size, height: particle.size)
+                        .position(particle.position)
+                        .opacity(particle.opacity)
+                        .blur(radius: 2)
+                }
+                
+                VStack {
+                    // Верхняя панель
+                    topBar(geometry: geometry)
+                    
+                    // Таймер
+                    timerView
+                    
+                    Spacer()
+                    
+                    // Игровое поле
+                    gameField
+                    
+                    Spacer()
+                    
+                    // Комбо текст
+                    if !comboText.isEmpty {
+                        Text(comboText)
+                            .font(.system(size: geometry.size.width > 500 ? 30 : 24, weight: .bold, design: .rounded))
+                            .foregroundStyle(.yellow)
+                            .shadow(color: .yellow.opacity(0.5), radius: 10)
+                            .transition(.scale.combined(with: .opacity))
+                            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: comboText)
+                            .padding(.bottom, 20)
+                            .accessibilityLabel(comboText)
+                    }
+                    
+                    // Рекламный баннер
+                    if !isPremium {
+                        adBanner
+                    }
+                    
+                    // Оверлеи
+                    if gameOver {
+                        gameOverView
+                            .transition(.scale.combined(with: .opacity))
+                    }
+                    
+                    if isPaused && !gameOver {
+                        pauseView
+                            .transition(.opacity)
+                    }
+                }
+                
+                // Таблица рекордов
+                if showHighScores {
+                    highScoresView
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+            }
+        }
+        .onAppear {
+            startGame()
+        }
+        .onDisappear {
+            stopAllTimers()
+        }
+        .preferredColorScheme(.dark)
+        .accessibilityElement(children: .contain)
+    }
+    
+    // MARK: - Верхняя панель
+    @ViewBuilder
+    func topBar(geometry: GeometryProxy) -> some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 5) {
+                Text("Уровень: \(level)")
+                    .font(.system(size: geometry.size.width > 500 ? 28 : 22, weight: .bold, design: .rounded))
+                    .foregroundStyle(.white)
+                
+                if combo > 1 {
+                    Text("Комбо: x\(combo)")
+                        .font(.caption)
+                        .foregroundStyle(.yellow)
+                        .transition(.scale.combined(with: .opacity))
+                }
+            }
+            
+            Spacer()
+            
+            Text("⭐️ \(score)")
+                .font(.system(size: geometry.size.width > 500 ? 32 : 28, weight: .bold, design: .rounded))
+                .foregroundStyle(.white)
+                .shadow(radius: 5)
+                .contentTransition(.numericText())
+            
+            Spacer()
+            
+            HStack(spacing: 12) {
+                // Пауза
+                Button {
+                    withAnimation {
+                        togglePause()
+                    }
+                } label: {
+                    Image(systemName: isPaused ? "play.fill" : "pause.fill")
+                        .font(.title3)
+                        .foregroundStyle(.white)
+                        .padding(12)
+                        .background(Circle().fill(.ultraThinMaterial))
+                }
+                .accessibilityLabel(isPaused ? "Продолжить" : "Пауза")
+                
+                // Звук
+                Button {
+                    toggleSound()
+                } label: {
+                    Image(systemName: soundManager.isSoundOn ? "speaker.wave.2.fill" : "speaker.slash.fill")
+                        .font(.title3)
+                        .foregroundStyle(.white)
+                        .padding(12)
+                        .background(Circle().fill(.ultraThinMaterial))
+                }
+                .accessibilityLabel(soundManager.isSoundOn ? "Выключить звук" : "Включить звук")
+                
+                // Рекорды
+                Button {
+                    withAnimation {
+                        showHighScores.toggle()
+                    }
+                } label: {
+                    Image(systemName: "trophy.fill")
+                        .font(.title3)
+                        .foregroundStyle(.yellow)
+                        .padding(12)
+                        .background(Circle().fill(.ultraThinMaterial))
+                }
+                .accessibilityLabel("Таблица рекордов")
+            }
+        }
+        .padding()
+    }
+    
+    // MARK: - Таймер
+    var timerView: some View {
+        ZStack {
+            Circle()
+                .stroke(.gray.opacity(0.3), lineWidth: 12)
+                .frame(width: 70, height: 70)
+            
+            Circle()
+                .trim(from: 0, to: CGFloat(timeLeft) / 10)
+                .stroke(
+                    timeLeft < 3 ? Color.red : Color.green,
+                    style: StrokeStyle(lineWidth: 12, lineCap: .round)
+                )
+                .frame(width: 70, height: 70)
+                .rotationEffect(.degrees(-90))
+                .animation(.easeInOut(duration: 1), value: timeLeft)
+            
+            Text("\(timeLeft)")
+                .font(.title.bold())
+                .foregroundStyle(timeLeft < 3 ? .red : .white)
+                .contentTransition(.numericText())
+        }
+        .accessibilityLabel("Осталось \(timeLeft) секунд")
+    }
+    
+    // MARK: - Игровое поле
+    var gameField: some View {
+        ZStack {
+            // Звезда
+            if isStarVisible && !gameOver && !isPaused {
+                Image(systemName: isBadStar ? "xmark.circle.fill" : "star.fill")
+                    .font(.system(size: starSize))
+                    .foregroundStyle(isBadStar ? .red : .yellow)
+                    .scaleEffect(starScale)
+                    .rotationEffect(.degrees(starRotation))
+                    .shadow(color: (isBadStar ? .red : .yellow).opacity(0.8), radius: 20)
+                    .position(starPosition)
+                    .onTapGesture {
+                        handleTap()
+                    }
+                    .accessibilityLabel(isBadStar ? "Плохая звезда" : "Хорошая звезда")
+                    .accessibilityHint("Нажмите, чтобы поймать")
+            }
+            
+            // Бонус
+            if showBonus && !gameOver && !isPaused {
+                Image(systemName: bonusType.symbol)
+                    .font(.system(size: 40))
+                    .foregroundStyle(bonusType.color)
+                    .position(bonusPosition)
+                    .shadow(color: bonusType.color.opacity(0.8), radius: 15)
+                    .transition(.scale.combined(with: .opacity))
+                    .onTapGesture {
+                        collectBonus()
+                    }
+                    .accessibilityLabel("Бонус: \(bonusType.effect)")
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    
+    // MARK: - Рекламный баннер
+    var adBanner: some View {
+        HStack {
+            Text("📢 Реклама")
+                .font(.caption)
+                .foregroundStyle(.white)
+            
+            Spacer()
+            
+            Button("Premium 99₽") {
+                purchasePremium()
+            }
+            .font(.caption.bold())
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(.purple)
+            .foregroundStyle(.white)
+            .clipShape(Capsule())
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 10)
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 15))
+        .padding(.horizontal)
+        .padding(.bottom, 10)
+    }
+    
+    // MARK: - Экран Game Over
+    var gameOverView: some View {
+        VStack(spacing: 20) {
+            Text("Игра окончена! 🎮")
+                .font(.largeTitle.bold())
+                .foregroundStyle(.white)
+            
+            VStack(spacing: 10) {
+                Text("Счёт: \(score)")
+                    .font(.title)
+                    .foregroundStyle(.yellow)
+                
+                Text("Уровень: \(level)")
+                    .font(.title3)
+                    .foregroundStyle(.white)
+                
+                Text("Лучший: \(highScoreManager.highScores.first?.score ?? 0)")
+                    .font(.headline)
+                    .foregroundStyle(.orange)
+            }
+            
+            HStack(spacing: 15) {
+                Button {
+                    withAnimation(.spring()) {
+                        startGame()
+                    }
+                } label: {
+                    Text("Играть снова 🔄")
+                        .font(.title3.bold())
+                        .padding()
+                        .background(.green)
+                        .foregroundStyle(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 20))
+                        .shadow(radius: 10)
+                }
+                
+                Button {
+                    withAnimation {
+                        showHighScores.toggle()
+                    }
+                } label: {
+                    Text("Рекорды 🏆")
+                        .font(.title3.bold())
+                        .padding()
+                        .background(.orange)
+                        .foregroundStyle(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 20))
+                        .shadow(radius: 10)
+                }
+            }
+            
+            if !isPremium {
+                Button("🎁 +10 очков за рекламу") {
+                    watchAdForBonus()
+                }
+                .font(.caption)
+                .foregroundStyle(.orange)
+                .padding(.top, 5)
+            }
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 30)
+                .fill(.ultraThinMaterial)
+                .shadow(radius: 20)
+        )
+    }
+    
+    // MARK: - Экран паузы
+    var pauseView: some View {
+        VStack(spacing: 20) {
+            Text("Пауза ⏸")
+                .font(.largeTitle.bold())
+                .foregroundStyle(.white)
+            
+            Button {
+                withAnimation {
+                    togglePause()
+                }
+            } label: {
+                Text("Продолжить ▶️")
+                    .font(.title2.bold())
+                    .padding()
+                    .background(.green)
+                    .foregroundStyle(.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 20))
+            }
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 30)
+                .fill(.ultraThinMaterial)
+        )
+    }
+    
+    // MARK: - Таблица рекордов
+    var highScoresView: some View {
+        VStack(spacing: 15) {
+            Text("Таблица рекордов 🏆")
+                .font(.title.bold())
+                .foregroundStyle(.white)
+            
+            if highScoreManager.highScores.isEmpty {
+                Text("Пока нет рекордов")
+                    .foregroundStyle(.gray)
+            } else {
+                ScrollView {
+                    ForEach(Array(highScoreManager.highScores.enumerated()), id: \.element.id) { index, record in
+                        HStack {
+                            Text("\(index + 1).")
+                                .font(.title2.bold())
+                                .foregroundStyle(index < 3 ? .yellow : .white)
+                                .frame(width: 40)
+                            
+                            Text("\(record.score) очков")
+                                .font(.title3)
+                                .foregroundStyle(.white)
+                            
+                            Spacer()
+                            
+                            Text("Ур. \(record.level)")
+                                .font(.caption)
+                                .foregroundStyle(.gray)
+                        }
+                        .padding()
+                        .background(.white.opacity(0.1))
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                    }
+                }
+                .frame(maxHeight: 300)
+            }
+            
+            Button("Закрыть") {
+                withAnimation {
+                    showHighScores = false
+                }
+            }
+            .padding()
+            .background(.blue)
+            .foregroundStyle(.white)
+            .clipShape(RoundedRectangle(cornerRadius: 15))
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 25)
+                .fill(.ultraThinMaterial)
+                .shadow(radius: 20)
+        )
+        .padding()
+    }
+    
+    // MARK: - Вычисляемые свойства
+    var backgroundColors: [Color] {
+        switch level {
+        case 1...2: return [.blue.opacity(0.5), .purple.opacity(0.3)]
+        case 3...5: return [.purple.opacity(0.5), .pink.opacity(0.3)]
+        case 6...8: return [.orange.opacity(0.5), .red.opacity(0.3)]
+        default: return [.red.opacity(0.5), .black.opacity(0.5)]
+        }
+    }
+    
+    var starSize: CGFloat {
+        max(30, 70 - CGFloat(level * 3))
+    }
+    
+    var isPremium: Bool {
+        UserDefaults.standard.bool(forKey: "isPremium")
+    }
+    
+    // MARK: - Управление
+    func toggleSound() {
+        soundManager.isSoundOn.toggle()
+        if soundManager.isSoundOn {
+            soundManager.playSound(named: "correct")
+            soundManager.playHaptic(type: .tap)
+        }
+    }
+    
+    func togglePause() {
+        isPaused.toggle()
+        if isPaused {
+            stopAllTimers()
+        } else {
+            startTimers()
+        }
+    }
+    
+    func stopAllTimers() {
+        timer?.invalidate()
+        starTimer?.invalidate()
+    }
+    
+    // MARK: - Начало игры
+    func startGame() {
+        score = 0
+        level = 1
+        timeLeft = 10
+        gameOver = false
+        isBadStar = false
+        combo = 0
+        comboText = ""
+        starScale = 1.0
+        particles.removeAll()
+        showBonus = false
+        isPaused = false
+        
+        moveStar()
+        startTimers()
+        soundManager.playSound(named: "start")
+        soundManager.playHaptic(type: .success)
+    }
+    
+    // MARK: - Обработка нажатий
+    func handleTap() {
+        guard !gameOver && !isPaused else { return }
+        
+        if isBadStar {
+            score = max(0, score - 1)
+            combo = 0
+            comboText = "Промах! 💥"
+            soundManager.playSound(named: "wrong")
+            soundManager.playHaptic(type: .error)
+            createParticles(at: starPosition, color: .red, count: 10)
+            shakeAnimation()
+        } else {
+            combo += 1
+            let bonus = combo > 5 ? 3 : combo > 3 ? 2 : 1
+            score += bonus
+            comboText = combo > 5 ? "СУПЕР! 🔥 x\(bonus)" : combo > 3 ? "Круто! ⭐️ x\(bonus)" : "Отлично! ⭐️"
+            soundManager.playSound(named: "correct")
+            soundManager.playHaptic(type: .tap)
+            createParticles(at: starPosition, color: .yellow, count: 15)
+            popAnimation()
+            
+            if Int.random(in: 1...100) <= 15 {
+                spawnBonus()
+            }
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            withAnimation {
+                comboText = ""
+            }
+        }
+        
+        moveStar()
+    }
+    
+    func collectBonus() {
+        switch bonusType {
+        case .heart:
+            score += 3
+            comboText = "Бонус! ❤️ +3"
+        case .clock:
+            timeLeft += 5
+            comboText = "Время! ⏰ +5с"
+        case .star:
+            score += 5
+            comboText = "Суперзвезда! 🌟 +5"
+        }
+        
+        soundManager.playSound(named: "bonus")
+        soundManager.playHaptic(type: .success)
+        createParticles(at: bonusPosition, color: bonusType.color, count: 20)
+        showBonus = false
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            withAnimation {
+                comboText = ""
+            }
+        }
+    }
+    
+    func spawnBonus() {
+        bonusType = BonusType.allCases.randomElement() ?? .heart
+        
+        let screenWidth = UIScreen.main.bounds.width
+        let screenHeight = UIScreen.main.bounds.height
+        
+        bonusPosition = CGPoint(
+            x: CGFloat.random(in: 100...(screenWidth - 100)),
+            y: CGFloat.random(in: 250...(screenHeight - 250))
+        )
+        
+        withAnimation(.spring()) {
+            showBonus = true
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            withAnimation {
+                showBonus = false
+            }
+        }
+    }
+    
+    // MARK: - Анимации
+    func popAnimation() {
+        withAnimation(.spring(response: 0.2, dampingFraction: 0.4)) {
+            starScale = 1.3
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                starScale = 1.0
+            }
+        }
+    }
+    
+    func shakeAnimation() {
+        withAnimation(.easeInOut(duration: 0.1)) {
+            starRotation = 15
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            withAnimation(.easeInOut(duration: 0.1)) {
+                starRotation = 0
+            }
+        }
+    }
+    
+    // MARK: - Частицы
+    func createParticles(at position: CGPoint, color: Color, count: Int) {
+        for _ in 0..<count {
+            let particle = Particle(
+                position: position,
+                color: color,
+                size: CGFloat.random(in: 10...30),
+                opacity: 1.0
+            )
+            particles.append(particle)
+            
+            withAnimation(.easeOut(duration: 0.8)) {
+                let index = particles.count - 1
+                particles[index].position = CGPoint(
+                    x: position.x + CGFloat.random(in: -150...150),
+                    y: position.y + CGFloat.random(in: -150...150)
+                )
+                particles[index].opacity = 0
+            }
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            particles.removeAll()
+        }
+    }
+    
+    // MARK: - Таймеры
+    func startTimers() {
+        stopAllTimers()
+        
+        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
+            if !gameOver && !isPaused {
+                timeLeft -= 1
+                
+                if timeLeft <= 0 {
+                    if score >= level * 3 {
+                        level += 1
+                        timeLeft = 10
+                        score = 0
+                        combo = 0
+                        soundManager.playSound(named: "levelup")
+                        soundManager.playHaptic(type: .success)
+                    } else {
+                        gameOver = true
+                        isStarVisible = false
+                        stopAllTimers()
+                        soundManager.playSound(named: "gameover")
+                        soundManager.playHaptic(type: .error)
+                        highScoreManager.addScore(score: score, level: level)
+                    }
+                }
+            }
+        }
+        
+        moveStarTimer()
+    }
+    
+    func moveStarTimer() {
+        starTimer?.invalidate()
+        
+        let interval = max(0.4, 1.5 - Double(level) * 0.1)
+        
+        starTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { _ in
+            if !gameOver && !isPaused {
+                moveStar()
+            }
+        }
+    }
+    
+    func moveStar() {
+        guard !gameOver else { return }
+        
+        let screenWidth = UIScreen.main.bounds.width
+        let screenHeight = UIScreen.main.bounds.height
+        
+        withAnimation(.easeInOut(duration: 0.3)) {
+            starPosition = CGPoint(
+                x: CGFloat.random(in: 100...(screenWidth - 100)),
+                y: CGFloat.random(in: 250...(screenHeight - 250))
+            )
+            
+            if level >= 3 {
+                isBadStar = Int.random(in: 1...100) <= level * 5
+            } else {
+                isBadStar = false
+            }
+        }
+        
+        withAnimation(.easeInOut(duration: 0.3)) {
+            starScale = 0.8
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
+                starScale = 1.0
+            }
+        }
+        
+        moveStarTimer()
+    }
+    
+    // MARK: - Монетизация
+    func purchasePremium() {
+        UserDefaults.standard.set(true, forKey: "isPremium")
+        soundManager.playHaptic(type: .success)
+    }
+    
+    func watchAdForBonus() {
+        score += 10
+        soundManager.playHaptic(type: .success)
+        startGame()
+    }
+}
+
+// MARK: - Предпросмотр
+#Preview {
+    GameView()
+        .preferredColorScheme(.dark)
+}
