@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>⭐️ Поймай звезду</title>
+    <title>⭐️ Поймай звезду - Deluxe</title>
     
-    <!-- Для Telegram Mini App -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        
         * {
             margin: 0;
             padding: 0;
@@ -18,9 +19,18 @@
             -webkit-user-select: none;
         }
         
+        :root {
+            --primary: #6C3CE1;
+            --secondary: #E83E8C;
+            --accent: #FFD700;
+            --bg-start: #0f0c29;
+            --bg-mid: #302b63;
+            --bg-end: #24243e;
+        }
+        
         body {
-            font-family: -apple-system, 'SF Pro', 'Segoe UI', 'Roboto', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Orbitron', -apple-system, sans-serif;
+            background: var(--bg-start);
             height: 100vh;
             height: 100dvh;
             overflow: hidden;
@@ -33,64 +43,132 @@
             height: 100%;
             position: relative;
             overflow: hidden;
+            background: linear-gradient(135deg, var(--bg-start), var(--bg-mid), var(--bg-end));
+        }
+        
+        /* Динамический фон с частицами */
+        #bgCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+        
+        /* Анимированные звезды фона */
+        .bg-star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle var(--duration) ease-in-out infinite;
+            z-index: 0;
+            pointer-events: none;
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
         }
         
         /* Верхняя панель */
         #topBar {
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            padding: 15px;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            padding: 12px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             z-index: 10;
-            background: rgba(0,0,0,0.4);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
         }
         
         #levelInfo {
             color: white;
-            font-weight: bold;
-            font-size: 18px;
+            font-weight: 700;
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+        
+        #levelInfo span {
+            color: var(--accent);
         }
         
         #comboInfo {
-            color: #ffd700;
-            font-size: 12px;
+            color: var(--accent);
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            opacity: 0.8;
+            min-height: 16px;
         }
         
         #scoreInfo {
-            color: #ffd700;
-            font-weight: bold;
-            font-size: 22px;
+            color: var(--accent);
+            font-weight: 900;
+            font-size: 24px;
+            text-shadow: 0 0 20px rgba(255,215,0,0.3);
         }
         
         .top-button {
-            background: rgba(255,255,255,0.2);
-            border: none;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.15);
             color: white;
-            font-size: 20px;
+            font-size: 18px;
             width: 40px;
             height: 40px;
-            border-radius: 50%;
+            border-radius: 12px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.3s;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            touch-action: manipulation;
+            backdrop-filter: blur(10px);
         }
         
         .top-button:active {
+            transform: scale(0.85);
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .top-button.active {
+            background: rgba(108, 60, 225, 0.4);
+            border-color: var(--primary);
+        }
+        
+        /* Жизни */
+        #livesContainer {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            padding: 4px 12px;
+            background: rgba(255,0,0,0.15);
+            border-radius: 12px;
+            border: 1px solid rgba(255,0,0,0.2);
+        }
+        
+        .life-icon {
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .life-icon.lost {
+            opacity: 0.2;
             transform: scale(0.8);
         }
         
         /* Таймер */
         #timerContainer {
             position: absolute;
-            top: 85px;
+            top: 80px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 10;
@@ -98,56 +176,169 @@
         }
         
         #timerCircle {
-            width: 60px;
-            height: 60px;
+            width: 64px;
+            height: 64px;
             border-radius: 50%;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
             display: flex;
             align-items: center;
             justify-content: center;
+            border: 3px solid rgba(255,255,255,0.2);
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        #timerCircle::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 50%;
+            padding: 3px;
+            background: conic-gradient(from 0deg, transparent, var(--accent), transparent);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        #timerCircle.warning::before {
+            opacity: 1;
+            animation: timerSpin 1s linear infinite;
+        }
+        
+        @keyframes timerSpin {
+            to { transform: rotate(360deg); }
         }
         
         #timerText {
             color: white;
             font-size: 24px;
-            font-weight: bold;
+            font-weight: 900;
+            transition: color 0.3s;
+            font-variant-numeric: tabular-nums;
+        }
+        
+        #timerText.warning {
+            color: #ff4444;
+            animation: timerPulse 0.5s ease-in-out infinite;
+        }
+        
+        @keyframes timerPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
         }
         
         /* Звезда */
         .star {
             position: absolute;
-            font-size: 60px;
             cursor: pointer;
-            transition: transform 0.1s;
             z-index: 5;
-            filter: drop-shadow(0 0 15px rgba(255,215,0,0.8));
-            animation: starPulse 0.5s ease-in-out;
+            touch-action: manipulation;
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            filter: drop-shadow(0 0 30px rgba(255,215,0,0.6));
+            animation: starFloat 3s ease-in-out infinite;
+        }
+        
+        .star.good {
+            animation: starFloat 3s ease-in-out infinite, starGlow 2s ease-in-out infinite;
+        }
+        
+        .star.bad {
+            animation: starFloat 3s ease-in-out infinite, starShake 0.5s ease-in-out infinite;
+            filter: drop-shadow(0 0 30px rgba(255,0,0,0.6));
+        }
+        
+        @keyframes starFloat {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(10deg); }
+        }
+        
+        @keyframes starGlow {
+            0%, 100% { filter: drop-shadow(0 0 20px rgba(255,215,0,0.4)); }
+            50% { filter: drop-shadow(0 0 40px rgba(255,215,0,0.9)); }
+        }
+        
+        @keyframes starShake {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
         }
         
         .star:active {
-            transform: scale(1.2);
+            transform: scale(1.4) !important;
         }
         
-        .bad-star {
-            filter: drop-shadow(0 0 15px rgba(255,0,0,0.8));
+        .star .star-emoji {
+            display: block;
+            transition: transform 0.3s;
         }
         
-        /* Бонусы */
+        .star .star-ring {
+            position: absolute;
+            inset: -15px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,215,0,0.2);
+            animation: ringExpand 2s ease-out infinite;
+            pointer-events: none;
+        }
+        
+        @keyframes ringExpand {
+            0% { transform: scale(0.8); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+        
+        /* Бонусы улучшенные */
         .bonus {
             position: absolute;
-            font-size: 40px;
             cursor: pointer;
             z-index: 5;
-            animation: bonusAppear 0.3s ease-out;
-            filter: drop-shadow(0 0 10px rgba(255,255,255,0.6));
+            touch-action: manipulation;
+            animation: bonusAppear 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            filter: drop-shadow(0 0 20px rgba(255,255,255,0.3));
+            transition: transform 0.2s;
         }
         
-        /* Частицы */
+        .bonus:active {
+            transform: scale(1.3);
+        }
+        
+        .bonus .bonus-emoji {
+            display: block;
+            font-size: 44px;
+            animation: bonusFloat 2s ease-in-out infinite;
+        }
+        
+        @keyframes bonusFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+        
+        .bonus .bonus-label {
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 8px;
+            color: white;
+            background: rgba(0,0,0,0.6);
+            padding: 2px 8px;
+            border-radius: 8px;
+            white-space: nowrap;
+            font-family: -apple-system, sans-serif;
+        }
+        
+        /* Частицы улучшенные */
         .particle {
             position: absolute;
             pointer-events: none;
             z-index: 3;
-            animation: particleFly 0.8s ease-out forwards;
+            animation: particleFly 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        
+        .particle .particle-emoji {
+            display: block;
+            font-size: inherit;
         }
         
         /* Комбо текст */
@@ -156,14 +347,150 @@
             bottom: 120px;
             left: 50%;
             transform: translateX(-50%);
-            color: #ffd700;
-            font-size: 28px;
-            font-weight: bold;
+            font-weight: 900;
             z-index: 10;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-            animation: comboPop 0.5s ease-out;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.5);
             pointer-events: none;
             white-space: nowrap;
+            opacity: 0;
+            transition: all 0.3s;
+            font-size: 32px;
+        }
+        
+        #comboText.visible {
+            opacity: 1;
+            animation: comboPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        @keyframes comboPop {
+            0% { transform: translateX(-50%) scale(0) rotate(-10deg); opacity: 0; }
+            50% { transform: translateX(-50%) scale(1.3) rotate(5deg); opacity: 1; }
+            100% { transform: translateX(-50%) scale(1) rotate(0deg); opacity: 1; }
+        }
+        
+        /* Магазин усилений */
+        #shopOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 50;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backdrop-filter: blur(20px);
+        }
+        
+        #shopOverlay.active {
+            display: flex;
+        }
+        
+        .shop-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 24px;
+            padding: 30px;
+            max-width: 400px;
+            width: 100%;
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(20px);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .shop-title {
+            color: white;
+            font-size: 28px;
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .shop-title span {
+            color: var(--accent);
+        }
+        
+        .shop-item {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.3s;
+        }
+        
+        .shop-item:active {
+            transform: scale(0.98);
+        }
+        
+        .shop-item .item-icon {
+            font-size: 32px;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+        }
+        
+        .shop-item .item-info {
+            flex: 1;
+        }
+        
+        .shop-item .item-name {
+            color: white;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: -apple-system, sans-serif;
+        }
+        
+        .shop-item .item-desc {
+            color: rgba(255,255,255,0.6);
+            font-size: 11px;
+            font-family: -apple-system, sans-serif;
+            margin-top: 2px;
+        }
+        
+        .shop-item .item-price {
+            color: var(--accent);
+            font-size: 16px;
+            font-weight: 700;
+            padding: 6px 14px;
+            background: rgba(255,215,0,0.15);
+            border-radius: 10px;
+            border: 1px solid rgba(255,215,0,0.2);
+        }
+        
+        .shop-item .item-price.owned {
+            color: #4CAF50;
+            border-color: #4CAF50;
+            background: rgba(76,175,80,0.15);
+        }
+        
+        .shop-close {
+            width: 100%;
+            padding: 14px;
+            margin-top: 16px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            border-radius: 14px;
+            color: white;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        .shop-close:active {
+            transform: scale(0.95);
+            background: rgba(255,255,255,0.15);
         }
         
         /* Оверлеи */
@@ -175,65 +502,87 @@
             bottom: 0;
             background: rgba(0,0,0,0.85);
             z-index: 100;
-            display: flex;
+            display: none;
             align-items: center;
             justify-content: center;
             flex-direction: column;
             padding: 20px;
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            animation: overlayFade 0.3s ease-out;
+        }
+        
+        .overlay.active {
+            display: flex;
+        }
+        
+        @keyframes overlayFade {
+            0% { opacity: 0; transform: scale(0.9); }
+            100% { opacity: 1; transform: scale(1); }
         }
         
         .overlay-card {
-            background: rgba(255,255,255,0.1);
-            border-radius: 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 24px;
             padding: 30px;
             text-align: center;
             max-width: 400px;
             width: 100%;
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(20px);
         }
         
         .overlay-title {
             color: white;
             font-size: 32px;
-            font-weight: bold;
+            font-weight: 900;
             margin-bottom: 15px;
         }
         
         .overlay-text {
-            color: #ddd;
-            font-size: 18px;
-            margin-bottom: 10px;
+            color: rgba(255,255,255,0.8);
+            font-size: 16px;
+            margin-bottom: 8px;
+            font-family: -apple-system, sans-serif;
         }
         
         .game-button {
-            background: #4CAF50;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
             border: none;
-            padding: 15px 30px;
-            font-size: 20px;
-            font-weight: bold;
-            border-radius: 25px;
+            padding: 14px 30px;
+            font-size: 16px;
+            font-weight: 700;
+            border-radius: 16px;
             cursor: pointer;
-            margin: 8px;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(76,175,80,0.4);
+            margin: 6px;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 4px 20px rgba(108,60,225,0.3);
             width: 100%;
             max-width: 280px;
+            touch-action: manipulation;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 0.5px;
         }
         
         .game-button:active {
-            transform: scale(0.9);
+            transform: scale(0.95);
         }
         
-        .game-button.orange {
-            background: #FF9800;
-            box-shadow: 0 4px 15px rgba(255,152,0,0.4);
+        .game-button.gold {
+            background: linear-gradient(135deg, #f7971e, #ffd200);
+            box-shadow: 0 4px 20px rgba(255,215,0,0.3);
         }
         
         .game-button.purple {
-            background: #9C27B0;
-            box-shadow: 0 4px 15px rgba(156,39,176,0.4);
+            background: linear-gradient(135deg, #a18cd1, #fbc2eb);
+            color: #1a1a2e;
+        }
+        
+        .game-button.outline {
+            background: transparent;
+            border: 2px solid rgba(255,255,255,0.2);
+            box-shadow: none;
         }
         
         /* Рекламный баннер */
@@ -243,87 +592,150 @@
             left: 0;
             right: 0;
             height: 60px;
-            background: rgba(0,0,0,0.6);
+            background: rgba(0,0,0,0.7);
             z-index: 20;
-            display: flex;
+            display: none;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            gap: 12px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        #adBanner.active {
+            display: flex;
         }
         
         .ad-button {
-            background: #FF9800;
+            background: rgba(255,255,255,0.1);
             color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 15px;
-            font-size: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 6px 16px;
+            border-radius: 12px;
+            font-size: 11px;
             cursor: pointer;
+            touch-action: manipulation;
+            transition: all 0.3s;
+            font-family: -apple-system, sans-serif;
         }
         
-        /* Анимации */
-        @keyframes starPulse {
-            0% { transform: scale(0); }
-            50% { transform: scale(1.3); }
-            100% { transform: scale(1); }
+        .ad-button:active {
+            transform: scale(0.9);
         }
         
-        @keyframes bonusAppear {
-            0% { transform: scale(0) rotate(0deg); }
-            100% { transform: scale(1) rotate(360deg); }
+        .ad-button.premium {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-color: transparent;
         }
         
-        @keyframes particleFly {
-            0% { 
-                transform: translate(0, 0) scale(1);
-                opacity: 1;
-            }
-            100% { 
-                transform: translate(var(--dx), var(--dy)) scale(0);
-                opacity: 0;
-            }
+        /* Уровень прогресс */
+        #levelProgress {
+            position: absolute;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 8;
+            width: 200px;
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            overflow: hidden;
         }
         
-        @keyframes comboPop {
-            0% { transform: translateX(-50%) scale(0); }
-            50% { transform: translateX(-50%) scale(1.3); }
-            100% { transform: translateX(-50%) scale(1); }
+        #levelProgress .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            border-radius: 4px;
+            transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            width: 0%;
         }
         
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-10px) rotate(-10deg); }
-            75% { transform: translateX(10px) rotate(10deg); }
+        #levelProgress .progress-label {
+            position: absolute;
+            top: -20px;
+            right: 0;
+            color: rgba(255,255,255,0.4);
+            font-size: 8px;
+            letter-spacing: 1px;
         }
         
-        .shake {
-            animation: shake 0.3s ease-in-out;
+        /* Онлайн рекорды */
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-family: -apple-system, sans-serif;
         }
         
-        .hidden {
-            display: none !important;
+        .leaderboard-item .rank {
+            color: var(--accent);
+            font-weight: 700;
+            min-width: 30px;
         }
+        
+        .leaderboard-item .name {
+            color: white;
+            flex: 1;
+            margin-left: 10px;
+        }
+        
+        .leaderboard-item .score {
+            color: var(--accent);
+            font-weight: 700;
+        }
+        
+        .leaderboard-item .level {
+            color: rgba(255,255,255,0.4);
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 480px) {
+            .star .star-emoji { font-size: 50px !important; }
+            .bonus .bonus-emoji { font-size: 36px !important; }
+            #scoreInfo { font-size: 20px; }
+            .overlay-title { font-size: 24px; }
+            .shop-title { font-size: 22px; }
+            #topBar { padding: 10px 14px; }
+            .top-button { width: 34px; height: 34px; font-size: 16px; }
+            #timerCircle { width: 54px; height: 54px; }
+            #timerText { font-size: 20px; }
+            #comboText { font-size: 24px; }
+        }
+        
+        /* Скрытые элементы */
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
     <div id="gameArea">
+        <!-- Фоновый холст -->
+        <canvas id="bgCanvas"></canvas>
+        
         <!-- Верхняя панель -->
         <div id="topBar">
             <div>
-                <div id="levelInfo">Уровень: 1</div>
+                <div id="levelInfo">УРОВЕНЬ <span id="levelNum">1</span></div>
                 <div id="comboInfo"></div>
             </div>
             
-            <div style="display: flex; gap: 8px;">
+            <div style="display: flex; gap: 6px; align-items: center;">
+                <div id="livesContainer">
+                    <span class="life-icon">❤️</span>
+                    <span class="life-icon">❤️</span>
+                    <span class="life-icon">❤️</span>
+                </div>
+                
                 <button class="top-button" onclick="togglePause()" id="pauseBtn">⏸</button>
                 <button class="top-button" onclick="toggleSound()" id="soundBtn">🔊</button>
+                <button class="top-button" onclick="openShop()" id="shopBtn">🛒</button>
                 <button class="top-button" onclick="showLeaderboard()">🏆</button>
-                <button class="top-button" onclick="shareGame()">📤</button>
             </div>
             
-            <div id="scoreInfo">⭐️ 0</div>
+            <div id="scoreInfo">⭐️ <span id="scoreNum">0</span></div>
         </div>
         
         <!-- Таймер -->
@@ -333,204 +745,392 @@
             </div>
         </div>
         
+        <!-- Прогресс уровня -->
+        <div id="levelProgress">
+            <div class="progress-fill" id="progressFill"></div>
+            <div class="progress-label" id="progressLabel">0%</div>
+        </div>
+        
         <!-- Комбо текст -->
-        <div id="comboText" class="hidden"></div>
+        <div id="comboText"></div>
         
         <!-- Рекламный баннер -->
-        <div id="adBanner" class="hidden">
-            <span style="font-size: 14px; color: white;">📢 Реклама</span>
+        <div id="adBanner">
+            <span style="font-size: 13px; color: white; font-family: -apple-system, sans-serif;">📢 Реклама</span>
             <button class="ad-button" onclick="clickAd()">Подробнее</button>
-            <button class="ad-button" onclick="removeAds()" style="background: #9C27B0;">Premium 99₽</button>
+            <button class="ad-button premium" onclick="removeAds()">💎 Premium</button>
+        </div>
+        
+        <!-- Магазин -->
+        <div id="shopOverlay">
+            <div class="shop-card">
+                <div class="shop-title">🛒 <span>Магазин</span></div>
+                
+                <div class="shop-item" onclick="buyPowerup('shield')">
+                    <div class="item-icon">🛡️</div>
+                    <div class="item-info">
+                        <div class="item-name">Щит</div>
+                        <div class="item-desc">Защищает от одной плохой звезды</div>
+                    </div>
+                    <div class="item-price" id="shieldPrice">50⭐</div>
+                </div>
+                
+                <div class="shop-item" onclick="buyPowerup('double')">
+                    <div class="item-icon">2️⃣</div>
+                    <div class="item-info">
+                        <div class="item-name">Двойные очки</div>
+                        <div class="item-desc">×2 очков на 10 секунд</div>
+                    </div>
+                    <div class="item-price" id="doublePrice">80⭐</div>
+                </div>
+                
+                <div class="shop-item" onclick="buyPowerup('extraTime')">
+                    <div class="item-icon">⏱️</div>
+                    <div class="item-info">
+                        <div class="item-name">+5 секунд</div>
+                        <div class="item-desc">Добавляет 5 секунд к таймеру</div>
+                    </div>
+                    <div class="item-price" id="extraTimePrice">60⭐</div>
+                </div>
+                
+                <div class="shop-item" onclick="buyPowerup('magnet')">
+                    <div class="item-icon">🧲</div>
+                    <div class="item-info">
+                        <div class="item-name">Магнит</div>
+                        <div class="item-desc">Притягивает бонусы на 5 секунд</div>
+                    </div>
+                    <div class="item-price" id="magnetPrice">100⭐</div>
+                </div>
+                
+                <button class="shop-close" onclick="closeShop()">✕ Закрыть</button>
+            </div>
         </div>
         
         <!-- Экран паузы -->
-        <div id="pauseOverlay" class="overlay hidden">
+        <div id="pauseOverlay" class="overlay">
             <div class="overlay-card">
                 <h2 class="overlay-title">⏸ Пауза</h2>
                 <button class="game-button" onclick="togglePause()">▶️ Продолжить</button>
+                <button class="game-button gold" onclick="restartGame()">🔄 Новая игра</button>
+                <button class="game-button outline" onclick="openShop()">🛒 Магазин</button>
             </div>
         </div>
         
         <!-- Экран окончания игры -->
-        <div id="gameOverOverlay" class="overlay hidden">
+        <div id="gameOverOverlay" class="overlay">
             <div class="overlay-card">
-                <h2 class="overlay-title">🎮 Игра окончена!</h2>
-                <p class="overlay-text" id="finalScore">Счёт: 0</p>
-                <p class="overlay-text" id="finalLevel">Уровень: 1</p>
-                <p class="overlay-text" id="bestScore" style="color: #ffd700;">Лучший: 0</p>
+                <h2 class="overlay-title">💫 Игра окончена!</h2>
+                <p class="overlay-text" id="finalScore">⭐️ Счёт: 0</p>
+                <p class="overlay-text" id="finalLevel">📊 Уровень: 1</p>
+                <p class="overlay-text" id="bestScore" style="color: var(--accent);">🏆 Лучший: 0</p>
                 
                 <button class="game-button" onclick="startGame()">🔄 Играть снова</button>
-                <button class="game-button orange" onclick="showLeaderboard()">🏆 Рекорды</button>
+                <button class="game-button gold" onclick="showLeaderboard()">🏆 Рекорды</button>
                 <button class="game-button purple" onclick="watchAdForBonus()">🎁 +10 очков за рекламу</button>
             </div>
         </div>
         
         <!-- Таблица рекордов -->
-        <div id="leaderboardOverlay" class="overlay hidden">
+        <div id="leaderboardOverlay" class="overlay">
             <div class="overlay-card">
-                <h2 class="overlay-title">🏆 Рекорды</h2>
-                <div id="leaderboardList" style="color: white; margin: 15px 0; max-height: 300px; overflow-y: auto;">
-                    Загрузка...
+                <h2 class="overlay-title">🏆 <span style="color: var(--accent);">Рекорды</span></h2>
+                <div id="leaderboardList" style="color: white; margin: 15px 0; max-height: 300px; overflow-y: auto; width: 100%;">
+                    <div style="text-align: center; color: rgba(255,255,255,0.4); padding: 20px;">Загрузка...</div>
                 </div>
-                <button class="game-button" onclick="hideLeaderboard()">Закрыть</button>
+                <button class="game-button" onclick="hideLeaderboard()">✕ Закрыть</button>
             </div>
         </div>
     </div>
     
     <script>
-        // ==================== ИГРОВЫЕ ПЕРЕМЕННЫЕ ====================
-        let score = 0;
-        let level = 1;
-        let timeLeft = 10;
-        let combo = 0;
-        let isPaused = false;
-        let gameOver = false;
-        let isBadStar = false;
-        let soundOn = true;
-        let gamesPlayed = 0;
-        
-        let gameTimer = null;
-        let starTimer = null;
-        
-        // Рекламная статистика
-        let adStats = {
-            impressions: parseInt(localStorage.getItem('adImpressions') || '0'),
-            clicks: parseInt(localStorage.getItem('adClicks') || '0'),
-            revenue: parseFloat(localStorage.getItem('adRevenue') || '0'),
-            isAdFree: localStorage.getItem('isAdFree') === 'true'
+        // ==================== КОНФИГУРАЦИЯ ====================
+        const CONFIG = {
+            baseLevelTime: 10,
+            levelUpScore: 3,
+            maxLives: 3,
+            starSizes: { min: 40, max: 70 },
+            bonusChance: 0.15,
+            speed: { min: 400, max: 1500 }
         };
         
-        // ==================== ЗВУКИ ====================
-        let audioContext = null;
+        // ==================== СОСТОЯНИЕ ====================
+        const state = {
+            score: 0,
+            level: 1,
+            timeLeft: 10,
+            lives: 3,
+            combo: 0,
+            maxCombo: 0,
+            isPaused: false,
+            gameOver: false,
+            isBadStar: false,
+            soundOn: true,
+            gamesPlayed: 0,
+            starClickable: true,
+            bonusActive: false,
+            activePowerups: {},
+            totalScore: parseInt(localStorage.getItem('totalScore') || '0'),
+            coins: parseInt(localStorage.getItem('coins') || '0')
+        };
         
-        function initAudio() {
-            if (!audioContext) {
+        let gameTimers = { game: null, star: null, bonus: null, combo: null, powerup: null };
+        let audioContext = null;
+        let bgMusic = null;
+        let bgAnimationId = null;
+        
+        // ==================== ФОНОВЫЕ ЧАСТИЦЫ ====================
+        function initBackground() {
+            const canvas = document.getElementById('bgCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resize();
+            window.addEventListener('resize', resize);
+            
+            const stars = [];
+            const count = 80;
+            
+            for (let i = 0; i < count; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    radius: Math.random() * 2 + 0.5,
+                    speed: Math.random() * 0.3 + 0.1,
+                    opacity: Math.random() * 0.5 + 0.2,
+                    phase: Math.random() * Math.PI * 2
+                });
+            }
+            
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Градиентный фон
+                const gradient = ctx.createRadialGradient(
+                    canvas.width/2, canvas.height/2, 0,
+                    canvas.width/2, canvas.height/2, canvas.width/2
+                );
+                gradient.addColorStop(0, 'rgba(108, 60, 225, 0.1)');
+                gradient.addColorStop(0.5, 'rgba(232, 62, 140, 0.05)');
+                gradient.addColorStop(1, 'rgba(15, 12, 41, 0)');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Звезды
+                const time = Date.now() / 1000;
+                stars.forEach(star => {
+                    const opacity = star.opacity * (0.6 + 0.4 * Math.sin(time * star.speed + star.phase));
+                    ctx.beginPath();
+                    ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+                    ctx.fill();
+                    
+                    // Свечение для больших звезд
+                    if (star.radius > 1.5) {
+                        ctx.shadowBlur = 10;
+                        ctx.shadowColor = 'rgba(255, 215, 0, 0.1)';
+                        ctx.fill();
+                        ctx.shadowBlur = 0;
+                    }
+                });
+                
+                bgAnimationId = requestAnimationFrame(draw);
+            }
+            
+            draw();
+            return () => cancelAnimationFrame(bgAnimationId);
+        }
+        
+        // ==================== ФОНОВАЯ МУЗЫКА ====================
+        function initBackgroundMusic() {
+            try {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Создаем простую мелодию используя Web Audio
+                function playMelody() {
+                    if (!state.soundOn || state.isPaused) return;
+                    
+                    const now = audioContext.currentTime;
+                    const notes = [
+                        { freq: 523, dur: 0.2, time: 0 },
+                        { freq: 659, dur: 0.2, time: 0.25 },
+                        { freq: 784, dur: 0.3, time: 0.5 },
+                        { freq: 659, dur: 0.2, time: 0.9 },
+                        { freq: 880, dur: 0.3, time: 1.2 },
+                        { freq: 784, dur: 0.2, time: 1.6 },
+                        { freq: 659, dur: 0.2, time: 1.9 },
+                        { freq: 523, dur: 0.4, time: 2.2 }
+                    ];
+                    
+                    notes.forEach(note => {
+                        const osc = audioContext.createOscillator();
+                        const gain = audioContext.createGain();
+                        osc.connect(gain);
+                        gain.connect(audioContext.destination);
+                        
+                        osc.frequency.value = note.freq;
+                        osc.type = 'sine';
+                        gain.gain.setValueAtTime(0.05, now + note.time);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + note.time + note.dur);
+                        
+                        osc.start(now + note.time);
+                        osc.stop(now + note.time + note.dur);
+                    });
+                    
+                    // Повтор через 3 секунды
+                    if (!state.gameOver && state.soundOn) {
+                        bgMusic = setTimeout(() => playMelody(), 3000);
+                    }
+                }
+                
+                setTimeout(playMelody, 500);
+            } catch(e) {
+                console.log('Фоновая музыка недоступна');
             }
         }
         
+        // ==================== ЗВУКИ ====================
         function playSound(type) {
-            if (!soundOn) return;
+            if (!state.soundOn || !audioContext) return;
             
             try {
-                initAudio();
                 const oscillator = audioContext.createOscillator();
                 const gainNode = audioContext.createGain();
                 
                 oscillator.connect(gainNode);
                 gainNode.connect(audioContext.destination);
                 
+                const now = audioContext.currentTime;
+                
                 switch(type) {
                     case 'correct':
-                        oscillator.frequency.value = 800;
+                        oscillator.frequency.setValueAtTime(800, now);
                         oscillator.type = 'sine';
-                        gainNode.gain.value = 0.3;
-                        oscillator.start();
-                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-                        oscillator.stop(audioContext.currentTime + 0.2);
+                        gainNode.gain.setValueAtTime(0.2, now);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                        oscillator.start(now);
+                        oscillator.stop(now + 0.15);
                         break;
                     case 'wrong':
-                        oscillator.frequency.value = 200;
+                        oscillator.frequency.setValueAtTime(200, now);
                         oscillator.type = 'sawtooth';
-                        gainNode.gain.value = 0.3;
-                        oscillator.start();
-                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-                        oscillator.stop(audioContext.currentTime + 0.3);
+                        gainNode.gain.setValueAtTime(0.15, now);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                        oscillator.start(now);
+                        oscillator.stop(now + 0.3);
                         break;
                     case 'levelup':
-                        oscillator.frequency.value = 600;
-                        oscillator.type = 'sine';
-                        gainNode.gain.value = 0.3;
-                        oscillator.start();
-                        setTimeout(() => { oscillator.frequency.value = 900; }, 100);
-                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
-                        oscillator.stop(audioContext.currentTime + 0.4);
+                        [523, 659, 784].forEach((freq, i) => {
+                            const osc = audioContext.createOscillator();
+                            const gain = audioContext.createGain();
+                            osc.connect(gain);
+                            gain.connect(audioContext.destination);
+                            osc.frequency.value = freq;
+                            osc.type = 'sine';
+                            gain.gain.setValueAtTime(0.15, now + i * 0.15);
+                            gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.15 + 0.15);
+                            osc.start(now + i * 0.15);
+                            osc.stop(now + i * 0.15 + 0.15);
+                        });
                         break;
                     case 'bonus':
-                        oscillator.frequency.value = 1000;
+                        oscillator.frequency.setValueAtTime(1000, now);
                         oscillator.type = 'sine';
-                        gainNode.gain.value = 0.3;
-                        oscillator.start();
-                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
-                        oscillator.stop(audioContext.currentTime + 0.15);
+                        gainNode.gain.setValueAtTime(0.2, now);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                        oscillator.start(now);
+                        oscillator.stop(now + 0.2);
                         break;
                     case 'gameover':
-                        oscillator.frequency.value = 400;
+                        oscillator.frequency.setValueAtTime(400, now);
                         oscillator.type = 'sawtooth';
-                        gainNode.gain.value = 0.3;
-                        oscillator.start();
-                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-                        oscillator.stop(audioContext.currentTime + 0.5);
+                        gainNode.gain.setValueAtTime(0.15, now);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                        oscillator.start(now);
+                        oscillator.stop(now + 0.5);
+                        break;
+                    case 'powerup':
+                        oscillator.frequency.setValueAtTime(600, now);
+                        oscillator.type = 'sine';
+                        gainNode.gain.setValueAtTime(0.2, now);
+                        oscillator.frequency.setValueAtTime(900, now + 0.1);
+                        oscillator.frequency.setValueAtTime(1200, now + 0.2);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                        oscillator.start(now);
+                        oscillator.stop(now + 0.4);
                         break;
                 }
             } catch(e) {
-                console.log('Звук недоступен');
+                console.log('Ошибка звука');
             }
         }
+        
+        // ==================== DOM УПРАВЛЕНИЕ ====================
+        function $(id) { return document.getElementById(id); }
+        function getGameArea() { return $('gameArea'); }
+        function getStar() { return document.querySelector('.star'); }
+        function getBonus() { return document.querySelector('.bonus'); }
         
         // ==================== УПРАВЛЕНИЕ ====================
         function toggleSound() {
-            soundOn = !soundOn;
-            document.getElementById('soundBtn').textContent = soundOn ? '🔊' : '🔇';
-            if (soundOn) playSound('correct');
+            state.soundOn = !state.soundOn;
+            $('soundBtn').textContent = state.soundOn ? '🔊' : '🔇';
+            $('soundBtn').classList.toggle('active', !state.soundOn);
+            
+            if (state.soundOn) {
+                initBackgroundMusic();
+            } else if (bgMusic) {
+                clearTimeout(bgMusic);
+                bgMusic = null;
+            }
         }
         
         function togglePause() {
-            if (gameOver) return;
+            if (state.gameOver) return;
             
-            isPaused = !isPaused;
-            document.getElementById('pauseOverlay').classList.toggle('hidden', !isPaused);
+            state.isPaused = !state.isPaused;
+            $('pauseOverlay').classList.toggle('active', state.isPaused);
             
-            if (isPaused) {
-                clearInterval(gameTimer);
-                clearInterval(starTimer);
-                document.getElementById('pauseBtn').textContent = '▶️';
+            if (state.isPaused) {
+                stopTimers();
+                $('pauseBtn').textContent = '▶️';
+                if (bgMusic) { clearTimeout(bgMusic); bgMusic = null; }
             } else {
-                document.getElementById('pauseBtn').textContent = '⏸';
+                $('pauseBtn').textContent = '⏸';
                 startTimers();
+                if (state.soundOn) initBackgroundMusic();
+                const star = getStar();
+                if (star) star.classList.remove('star-hidden');
             }
         }
         
-        // ==================== НАЧАЛО ИГРЫ ====================
-        function startGame() {
-            score = 0;
-            level = 1;
-            timeLeft = 10;
-            combo = 0;
-            isPaused = false;
-            gameOver = false;
-            gamesPlayed++;
-            
-            document.getElementById('gameOverOverlay').classList.add('hidden');
-            document.getElementById('pauseOverlay').classList.add('hidden');
-            
-            updateUI();
-            
-            // Реклама каждые 3 игры
-            if (gamesPlayed >= 3 && !adStats.isAdFree) {
-                gamesPlayed = 0;
-                showInterstitialAd();
-            }
-            
-            if (!adStats.isAdFree) {
-                showBannerAd();
-            }
-            
-            createStar();
-            startTimers();
-            playSound('levelup');
+        function restartGame() {
+            if (!state.isPaused) togglePause();
+            startGame();
+        }
+        
+        // ==================== ТАЙМЕРЫ ====================
+        function stopTimers() {
+            Object.values(gameTimers).forEach(timer => {
+                if (timer) {
+                    clearInterval(timer);
+                    clearTimeout(timer);
+                }
+            });
+            gameTimers = { game: null, star: null, bonus: null, combo: null, powerup: null };
         }
         
         function startTimers() {
-            clearInterval(gameTimer);
-            clearInterval(starTimer);
+            stopTimers();
             
-            gameTimer = setInterval(() => {
-                if (!isPaused && !gameOver) {
-                    timeLeft--;
+            gameTimers.game = setInterval(() => {
+                if (!state.isPaused && !state.gameOver) {
+                    state.timeLeft--;
                     updateTimer();
                     
-                    if (timeLeft <= 0) {
+                    if (state.timeLeft <= 0) {
                         endLevel();
                     }
                 }
@@ -540,249 +1140,518 @@
         }
         
         function moveStarTimer() {
-            clearInterval(starTimer);
+            if (gameTimers.star) clearInterval(gameTimers.star);
             
-            const interval = Math.max(400, 1500 - level * 100);
+            const interval = Math.max(CONFIG.speed.min, CONFIG.speed.max - state.level * 100);
             
-            starTimer = setInterval(() => {
-                if (!isPaused && !gameOver) {
+            gameTimers.star = setInterval(() => {
+                if (!state.isPaused && !state.gameOver) {
                     moveStar();
                 }
             }, interval);
         }
         
+        // ==================== ЖИЗНИ ====================
+        function updateLives() {
+            const container = $('livesContainer');
+            const hearts = container.querySelectorAll('.life-icon');
+            
+            hearts.forEach((heart, index) => {
+                heart.classList.toggle('lost', index >= state.lives);
+            });
+        }
+        
+        function loseLife() {
+            state.lives--;
+            updateLives();
+            
+            if (state.lives <= 0) {
+                endGame();
+            }
+        }
+        
+        // ==================== НАЧАЛО ИГРЫ ====================
+        function startGame() {
+            stopTimers();
+            
+            state.score = 0;
+            state.level = 1;
+            state.timeLeft = CONFIG.baseLevelTime;
+            state.lives = CONFIG.maxLives;
+            state.combo = 0;
+            state.maxCombo = 0;
+            state.isPaused = false;
+            state.gameOver = false;
+            state.starClickable = true;
+            state.bonusActive = false;
+            state.activePowerups = {};
+            state.gamesPlayed++;
+            
+            $('gameOverOverlay').classList.remove('active');
+            $('pauseOverlay').classList.remove('active');
+            $('leaderboardOverlay').classList.remove('active');
+            $('pauseBtn').textContent = '⏸';
+            
+            clearGameField();
+            
+            updateUI();
+            updateTimer();
+            updateLives();
+            updateProgress();
+            
+            if (state.gamesPlayed >= 3 && !localStorage.getItem('isAdFree')) {
+                state.gamesPlayed = 0;
+                showInterstitialAd();
+            }
+            
+            if (!localStorage.getItem('isAdFree')) {
+                $('adBanner').classList.add('active');
+            }
+            
+            createStar();
+            startTimers();
+            
+            if (state.soundOn) {
+                initBackgroundMusic();
+                setTimeout(() => playSound('levelup'), 200);
+            }
+            
+            saveGameStats();
+        }
+        
+        function clearGameField() {
+            document.querySelectorAll('.star, .bonus, .particle').forEach(el => el.remove());
+        }
+        
         // ==================== СОЗДАНИЕ ЗВЕЗДЫ ====================
         function createStar() {
-            const gameArea = document.getElementById('gameArea');
-            const oldStar = document.querySelector('.star');
+            const gameArea = getGameArea();
+            const oldStar = getStar();
             if (oldStar) oldStar.remove();
             
             const star = document.createElement('div');
-            star.className = 'star';
-            star.id = 'star';
+            star.className = 'star good';
             
-            isBadStar = level >= 3 && Math.random() * 100 <= level * 5;
-            star.textContent = isBadStar ? '❌' : '⭐️';
+            state.isBadStar = state.level >= 3 && Math.random() * 100 <= state.level * 5;
             
-            if (isBadStar) star.classList.add('bad-star');
+            const emoji = document.createElement('span');
+            emoji.className = 'star-emoji';
+            emoji.textContent = state.isBadStar ? '💀' : '⭐️';
+            emoji.style.fontSize = Math.max(CONFIG.starSizes.min, CONFIG.starSizes.max - state.level * 2) + 'px';
+            star.appendChild(emoji);
             
-            const size = Math.max(30, 70 - level * 3);
-            star.style.fontSize = size + 'px';
-            
-            positionElement(star);
-            
-            star.addEventListener('click', handleStarClick);
-            star.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                handleStarClick();
-            });
-            
-            gameArea.appendChild(star);
-        }
-        
-        function moveStar() {
-            const star = document.getElementById('star');
-            if (!star || gameOver) return;
-            
-            isBadStar = level >= 3 && Math.random() * 100 <= level * 5;
-            star.textContent = isBadStar ? '❌' : '⭐️';
-            
-            if (isBadStar) {
-                star.classList.add('bad-star');
-            } else {
-                star.classList.remove('bad-star');
+            // Кольцо для хороших звезд
+            if (!state.isBadStar) {
+                const ring = document.createElement('div');
+                ring.className = 'star-ring';
+                star.appendChild(ring);
             }
             
-            star.style.transition = 'all 0.3s ease-in-out';
-            positionElement(star);
+            if (state.isBadStar) {
+                star.classList.remove('good');
+                star.classList.add('bad');
+            }
             
-            star.style.transform = 'scale(0.8)';
-            setTimeout(() => {
-                star.style.transform = 'scale(1)';
-            }, 150);
+            const pos = getRandomPosition(star);
+            star.style.left = pos.x + 'px';
+            star.style.top = pos.y + 'px';
             
-            moveStarTimer();
+            const clickHandler = (e) => {
+                e.preventDefault();
+                handleStarClick();
+            };
+            
+            star.addEventListener('click', clickHandler);
+            star.addEventListener('touchstart', clickHandler);
+            
+            gameArea.appendChild(star);
+            state.starClickable = true;
         }
         
-        function positionElement(element) {
-            const gameArea = document.getElementById('gameArea');
+        function getRandomPosition(element) {
+            const gameArea = getGameArea();
             const areaWidth = gameArea.clientWidth;
             const areaHeight = gameArea.clientHeight;
             
-            const x = Math.random() * (areaWidth - 100) + 50;
-            const y = Math.random() * (areaHeight - 300) + 150;
+            const padding = 60;
+            const topOffset = 140;
             
-            element.style.left = x + 'px';
-            element.style.top = y + 'px';
+            const x = Math.random() * (areaWidth - padding * 2) + padding;
+            const y = Math.random() * (areaHeight - topOffset - padding * 2) + topOffset;
+            
+            return { x, y };
+        }
+        
+        function moveStar() {
+            const star = getStar();
+            if (!star || state.gameOver) return;
+            
+            if (state.isPaused) {
+                star.style.opacity = '0.3';
+                return;
+            }
+            
+            star.style.opacity = '1';
+            
+            state.isBadStar = state.level >= 3 && Math.random() * 100 <= state.level * 5;
+            
+            const emoji = star.querySelector('.star-emoji');
+            emoji.textContent = state.isBadStar ? '💀' : '⭐️';
+            
+            if (state.isBadStar) {
+                star.classList.remove('good');
+                star.classList.add('bad');
+            } else {
+                star.classList.remove('bad');
+                star.classList.add('good');
+            }
+            
+            const pos = getRandomPosition(star);
+            star.style.transition = 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+            star.style.left = pos.x + 'px';
+            star.style.top = pos.y + 'px';
+            
+            star.style.transform = 'scale(0.5)';
+            requestAnimationFrame(() => {
+                star.style.transform = 'scale(1)';
+            });
+            
+            state.starClickable = true;
         }
         
         // ==================== ОБРАБОТКА НАЖАТИЯ ====================
         function handleStarClick() {
-            if (isPaused || gameOver) return;
+            if (state.isPaused || state.gameOver || !state.starClickable) return;
             
-            const star = document.getElementById('star');
+            const star = getStar();
+            if (!star) return;
             
-            if (isBadStar) {
-                score = Math.max(0, score - 1);
-                combo = 0;
-                showComboText('Промах! 💥');
+            state.starClickable = false;
+            
+            // Проверка щита
+            if (state.isBadStar && state.activePowerups.shield) {
+                state.activePowerups.shield = false;
+                showComboText('🛡️ Щит активирован!', '#4CAF50');
+                playSound('powerup');
+                createParticles(star, '#4CAF50', 20);
+                state.starClickable = true;
+                setTimeout(() => moveStar(), 300);
+                return;
+            }
+            
+            if (state.isBadStar) {
+                state.score = Math.max(0, state.score - 2);
+                state.combo = 0;
+                showComboText('💥 Промах! -2', '#ff4444');
                 playSound('wrong');
-                createParticles(star, 'red', 10);
+                createParticles(star, '#ff4444', 15);
                 
                 star.classList.add('shake');
-                setTimeout(() => star.classList.remove('shake'), 300);
+                setTimeout(() => {
+                    star.classList.remove('shake');
+                    state.starClickable = true;
+                }, 300);
+                
+                loseLife();
             } else {
-                combo++;
-                const bonus = combo > 5 ? 3 : combo > 3 ? 2 : 1;
-                score += bonus;
+                state.combo++;
+                if (state.combo > state.maxCombo) state.maxCombo = state.combo;
                 
-                if (combo > 5) showComboText('СУПЕР! 🔥 x' + bonus);
-                else if (combo > 3) showComboText('Круто! ⭐️ x' + bonus);
-                else showComboText('Отлично! ⭐️');
+                let bonus = 1;
+                if (state.combo > 5) bonus = 3;
+                else if (state.combo > 3) bonus = 2;
                 
+                // Двойные очки
+                if (state.activePowerups.double) bonus *= 2;
+                
+                state.score += bonus;
+                
+                let text = '⭐️ +' + bonus;
+                let color = '#FFD700';
+                
+                if (state.combo > 5) {
+                    text = '🔥 СУПЕР! +' + bonus;
+                    color = '#FF6B6B';
+                } else if (state.combo > 3) {
+                    text = '⭐️ КРУТО! +' + bonus;
+                    color = '#FFD93D';
+                }
+                
+                showComboText(text, color);
                 playSound('correct');
-                createParticles(star, 'yellow', 15);
+                createParticles(star, '#FFD700', 20);
                 
-                if (Math.random() * 100 <= 15) spawnBonus();
+                state.totalScore += bonus;
+                state.coins += bonus;
+                localStorage.setItem('coins', state.coins);
+                
+                if (Math.random() * 100 <= CONFIG.bonusChance * 100 && !state.bonusActive) {
+                    spawnBonus();
+                }
             }
             
             updateUI();
-            moveStar();
+            updateProgress();
+            
+            setTimeout(() => {
+                if (!state.gameOver && !state.isPaused) {
+                    moveStar();
+                }
+            }, 200);
         }
         
         // ==================== БОНУСЫ ====================
         function spawnBonus() {
-            const gameArea = document.getElementById('gameArea');
-            const oldBonus = document.querySelector('.bonus');
+            if (state.bonusActive) return;
+            
+            const gameArea = getGameArea();
+            const oldBonus = getBonus();
             if (oldBonus) oldBonus.remove();
             
             const bonus = document.createElement('div');
             bonus.className = 'bonus';
             
             const types = [
-                { emoji: '❤️', effect: () => { score += 3; showComboText('Бонус! ❤️ +3'); } },
-                { emoji: '⏰', effect: () => { timeLeft += 5; updateTimer(); showComboText('Время! ⏰ +5с'); } },
-                { emoji: '🌟', effect: () => { score += 5; showComboText('Суперзвезда! 🌟 +5'); } }
+                { 
+                    emoji: '❤️', 
+                    label: '+3 очка',
+                    color: '#FF6B6B',
+                    effect: () => { 
+                        state.score += 3; 
+                        state.coins += 3;
+                        showComboText('❤️ +3 очка!', '#FF6B6B');
+                        playSound('bonus');
+                    }
+                },
+                { 
+                    emoji: '⏰', 
+                    label: '+5 сек',
+                    color: '#4ECDC4',
+                    effect: () => { 
+                        state.timeLeft += 5; 
+                        updateTimer();
+                        showComboText('⏰ +5 секунд!', '#4ECDC4');
+                        playSound('bonus');
+                    }
+                },
+                { 
+                    emoji: '🌟', 
+                    label: '+5 очков',
+                    color: '#FFD93D',
+                    effect: () => { 
+                        state.score += 5; 
+                        state.coins += 5;
+                        showComboText('🌟 +5 очков!', '#FFD93D');
+                        playSound('bonus');
+                    }
+                }
             ];
             
             const type = types[Math.floor(Math.random() * types.length)];
-            bonus.textContent = type.emoji;
             
-            positionElement(bonus);
+            const emojiSpan = document.createElement('span');
+            emojiSpan.className = 'bonus-emoji';
+            emojiSpan.textContent = type.emoji;
+            bonus.appendChild(emojiSpan);
             
-            const collectBonus = () => {
+            const label = document.createElement('span');
+            label.className = 'bonus-label';
+            label.textContent = type.label;
+            bonus.appendChild(label);
+            
+            const pos = getRandomPosition(bonus);
+            bonus.style.left = pos.x + 'px';
+            bonus.style.top = pos.y + 'px';
+            
+            const collectBonus = (e) => {
+                e.preventDefault();
+                if (state.isPaused || state.gameOver) return;
+                
                 type.effect();
-                playSound('bonus');
-                createParticles(bonus, 'yellow', 20);
+                createParticles(bonus, type.color, 25);
                 bonus.remove();
+                state.bonusActive = false;
                 updateUI();
             };
             
             bonus.addEventListener('click', collectBonus);
-            bonus.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                collectBonus();
-            });
+            bonus.addEventListener('touchstart', collectBonus);
             
             gameArea.appendChild(bonus);
+            state.bonusActive = true;
             
-            setTimeout(() => bonus.remove(), 3000);
+            gameTimers.bonus = setTimeout(() => {
+                if (bonus.parentNode) {
+                    bonus.remove();
+                    state.bonusActive = false;
+                }
+            }, 3000);
         }
         
         // ==================== ЧАСТИЦЫ ====================
         function createParticles(element, color, count) {
-            const gameArea = document.getElementById('gameArea');
+            const gameArea = getGameArea();
             const rect = element.getBoundingClientRect();
-            const x = rect.left + rect.width / 2;
-            const y = rect.top + rect.height / 2;
+            const gameRect = gameArea.getBoundingClientRect();
+            
+            const x = rect.left - gameRect.left + rect.width / 2;
+            const y = rect.top - gameRect.top + rect.height / 2;
+            
+            const emojis = ['✨', '⭐️', '🌟', '💫'];
             
             for (let i = 0; i < count; i++) {
                 const particle = document.createElement('div');
                 particle.className = 'particle';
-                particle.textContent = color === 'yellow' ? '✨' : '💥';
+                
+                const emojiSpan = document.createElement('span');
+                emojiSpan.className = 'particle-emoji';
+                emojiSpan.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                emojiSpan.style.fontSize = (Math.random() * 20 + 10) + 'px';
+                particle.appendChild(emojiSpan);
+                
                 particle.style.left = x + 'px';
                 particle.style.top = y + 'px';
-                particle.style.fontSize = Math.random() * 20 + 10 + 'px';
                 
-                const dx = Math.random() * 200 - 100;
-                const dy = Math.random() * 200 - 100;
+                const angle = Math.random() * Math.PI * 2;
+                const distance = Math.random() * 150 + 50;
+                const dx = Math.cos(angle) * distance;
+                const dy = Math.sin(angle) * distance;
+                
                 particle.style.setProperty('--dx', dx + 'px');
                 particle.style.setProperty('--dy', dy + 'px');
                 
                 gameArea.appendChild(particle);
-                setTimeout(() => particle.remove(), 800);
+                
+                setTimeout(() => {
+                    if (particle.parentNode) particle.remove();
+                }, 800);
             }
         }
         
         // ==================== КОМБО ТЕКСТ ====================
-        function showComboText(text) {
-            const comboElement = document.getElementById('comboText');
+        function showComboText(text, color = '#FFD700') {
+            const comboElement = $('comboText');
             comboElement.textContent = text;
-            comboElement.classList.remove('hidden');
+            comboElement.style.color = color;
+            comboElement.classList.add('visible');
+            
             comboElement.style.animation = 'none';
             comboElement.offsetHeight;
             comboElement.style.animation = '';
             
-            clearTimeout(window.comboTimeout);
-            window.comboTimeout = setTimeout(() => {
-                comboElement.classList.add('hidden');
-            }, 1000);
+            if (gameTimers.combo) clearTimeout(gameTimers.combo);
+            gameTimers.combo = setTimeout(() => {
+                comboElement.classList.remove('visible');
+            }, 1200);
         }
         
         // ==================== ОБНОВЛЕНИЕ UI ====================
         function updateUI() {
-            document.getElementById('levelInfo').textContent = 'Уровень: ' + level;
-            document.getElementById('scoreInfo').textContent = '⭐️ ' + score;
-            document.getElementById('comboInfo').textContent = combo > 1 ? 'Комбо: x' + combo : '';
+            $('levelNum').textContent = state.level;
+            $('scoreNum').textContent = state.score;
+            $('comboInfo').textContent = state.combo > 1 ? '⚡ x' + state.combo : '';
+            
+            // Лучший счет
+            const best = getBestScore();
+            if (state.score > best) {
+                $('scoreInfo').style.color = '#FF6B6B';
+                setTimeout(() => {
+                    $('scoreInfo').style.color = '';
+                }, 500);
+            }
         }
         
         function updateTimer() {
-            const timerText = document.getElementById('timerText');
-            timerText.textContent = timeLeft;
-            timerText.style.color = timeLeft < 3 ? '#ff4444' : 'white';
+            const timerText = $('timerText');
+            const timerCircle = $('timerCircle');
+            
+            timerText.textContent = state.timeLeft;
+            
+            if (state.timeLeft < 3) {
+                timerText.classList.add('warning');
+                timerCircle.classList.add('warning');
+            } else {
+                timerText.classList.remove('warning');
+                timerCircle.classList.remove('warning');
+            }
         }
         
-        // ==================== КОНЕЦ УРОВНЯ ====================
+        function updateProgress() {
+            const progress = state.score / (state.level * CONFIG.levelUpScore);
+            const percent = Math.min(100, progress * 100);
+            
+            $('progressFill').style.width = percent + '%';
+            $('progressLabel').textContent = Math.round(percent) + '%';
+        }
+        
+        // ==================== УРОВНИ ====================
         function endLevel() {
-            if (score >= level * 3) {
-                level++;
-                timeLeft = 10;
-                score = 0;
-                combo = 0;
+            if (state.score >= state.level * CONFIG.levelUpScore) {
+                state.level++;
+                state.timeLeft = CONFIG.baseLevelTime;
+                state.score = 0;
+                state.combo = 0;
                 
                 updateUI();
                 updateTimer();
-                playSound('levelup');
-                showComboText('Уровень ' + level + '! 🎉');
+                updateProgress();
+                updateLives();
                 
-                startTimers();
+                playSound('levelup');
+                showComboText('🎉 УРОВЕНЬ ' + state.level + '!', '#4ECDC4');
+                
+                moveStarTimer();
+                
+                setTimeout(() => {
+                    if (!state.gameOver) {
+                        createStar();
+                    }
+                }, 500);
             } else {
                 endGame();
             }
         }
         
         function endGame() {
-            gameOver = true;
-            clearInterval(gameTimer);
-            clearInterval(starTimer);
+            state.gameOver = true;
+            stopTimers();
             
-            const star = document.getElementById('star');
+            if (bgMusic) { clearTimeout(bgMusic); bgMusic = null; }
+            
+            const star = getStar();
             if (star) star.remove();
             
-            updateLeaderboard(score);
+            const bonus = getBonus();
+            if (bonus) bonus.remove();
             
-            document.getElementById('finalScore').textContent = 'Счёт: ' + score;
-            document.getElementById('finalLevel').textContent = 'Уровень: ' + level;
-            document.getElementById('bestScore').textContent = 'Лучший: ' + getBestScore();
-            document.getElementById('gameOverOverlay').classList.remove('hidden');
+            updateLeaderboard(state.score);
+            
+            $('finalScore').textContent = '⭐️ Счёт: ' + state.score;
+            $('finalLevel').textContent = '📊 Уровень: ' + state.level;
+            $('bestScore').textContent = '🏆 Лучший: ' + getBestScore();
+            $('gameOverOverlay').classList.add('active');
             
             playSound('gameover');
+            
+            if (window.Telegram?.WebApp) {
+                window.Telegram.WebApp.sendData(JSON.stringify({
+                    event: 'game_over',
+                    score: state.score,
+                    level: state.level,
+                    maxCombo: state.maxCombo
+                }));
+            }
         }
         
         // ==================== РЕКОРДЫ ====================
         function updateLeaderboard(newScore) {
             let scores = JSON.parse(localStorage.getItem('highScores') || '[]');
-            scores.push({ score: newScore, level: level, date: new Date().toLocaleDateString() });
+            scores.push({ 
+                score: newScore, 
+                level: state.level, 
+                combo: state.maxCombo,
+                date: new Date().toLocaleDateString('ru-RU')
+            });
             scores.sort((a, b) => b.score - a.score);
             scores = scores.slice(0, 10);
             localStorage.setItem('highScores', JSON.stringify(scores));
@@ -795,57 +1664,158 @@
         
         function showLeaderboard() {
             const scores = JSON.parse(localStorage.getItem('highScores') || '[]');
-            const listElement = document.getElementById('leaderboardList');
+            const listElement = $('leaderboardList');
             
             if (scores.length === 0) {
-                listElement.innerHTML = '<p style="color: #999;">Пока нет рекордов</p>';
+                listElement.innerHTML = '<div style="text-align: center; color: rgba(255,255,255,0.4); padding: 20px;">Пока нет рекордов</div>';
             } else {
-                listElement.innerHTML = scores.map((s, i) => 
-                    '<div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">' +
-                    '<span style="color: ' + (i < 3 ? '#ffd700' : 'white') + ';">' + (i + 1) + '. ' + s.score + ' очков</span>' +
-                    '<span style="color: #999; font-size: 14px;">Ур. ' + s.level + '</span>' +
-                    '</div>'
-                ).join('');
+                listElement.innerHTML = scores.map((s, i) => {
+                    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
+                    return `
+                        <div class="leaderboard-item">
+                            <span class="rank">${medal}</span>
+                            <span class="name">Игрок</span>
+                            <span class="score">${s.score}⭐</span>
+                            <span class="level">Ур.${s.level}</span>
+                        </div>
+                    `;
+                }).join('');
             }
             
-            document.getElementById('leaderboardOverlay').classList.remove('hidden');
+            $('leaderboardOverlay').classList.add('active');
         }
         
         function hideLeaderboard() {
-            document.getElementById('leaderboardOverlay').classList.add('hidden');
+            $('leaderboardOverlay').classList.remove('active');
         }
         
-        // ==================== SHARING ====================
-        function shareGame() {
-            const text = '🎮 Играю в "Поймай звезду"! Попробуй и ты!';
-            const url = window.location.href;
+        // ==================== МАГАЗИН ====================
+        const POWERUP_PRICES = {
+            shield: 50,
+            double: 80,
+            extraTime: 60,
+            magnet: 100
+        };
+        
+        function openShop() {
+            $('shopOverlay').classList.add('active');
+            updateShopUI();
+        }
+        
+        function closeShop() {
+            $('shopOverlay').classList.remove('active');
+        }
+        
+        function updateShopUI() {
+            const prices = {
+                shield: POWERUP_PRICES.shield,
+                double: POWERUP_PRICES.double,
+                extraTime: POWERUP_PRICES.extraTime,
+                magnet: POWERUP_PRICES.magnet
+            };
             
-            if (navigator.share) {
-                navigator.share({ title: 'Поймай звезду', text: text, url: url });
-            } else {
-                alert(text + ' ' + url);
+            Object.keys(prices).forEach(key => {
+                const el = $(key + 'Price');
+                if (el) {
+                    const owned = localStorage.getItem('powerup_' + key) === 'true';
+                    el.textContent = owned ? '✅ Владелец' : prices[key] + '⭐';
+                    el.className = 'item-price' + (owned ? ' owned' : '');
+                }
+            });
+        }
+        
+        function buyPowerup(type) {
+            if (localStorage.getItem('powerup_' + type) === 'true') {
+                alert('У вас уже есть это усиление!');
+                return;
+            }
+            
+            const price = POWERUP_PRICES[type];
+            if (state.coins < price) {
+                alert('❌ Недостаточно монет! Нужно ' + price + '⭐');
+                return;
+            }
+            
+            if (confirm('Купить ' + getPowerupName(type) + ' за ' + price + '⭐?')) {
+                state.coins -= price;
+                localStorage.setItem('coins', state.coins);
+                localStorage.setItem('powerup_' + type, 'true');
+                
+                // Активируем сразу
+                activatePowerup(type);
+                
+                updateShopUI();
+                playSound('powerup');
+                showComboText('✅ ' + getPowerupName(type) + ' активирован!', '#4CAF50');
+            }
+        }
+        
+        function getPowerupName(type) {
+            const names = {
+                shield: '🛡️ Щит',
+                double: '2️⃣ Двойные очки',
+                extraTime: '⏱️ +5 секунд',
+                magnet: '🧲 Магнит'
+            };
+            return names[type] || type;
+        }
+        
+        function activatePowerup(type) {
+            state.activePowerups[type] = true;
+            
+            switch(type) {
+                case 'shield':
+                    // Щит активен до использования
+                    break;
+                case 'double':
+                    // Двойные очки на 10 секунд
+                    if (gameTimers.powerup) clearTimeout(gameTimers.powerup);
+                    gameTimers.powerup = setTimeout(() => {
+                        state.activePowerups.double = false;
+                        showComboText('⏱️ Двойные очки закончились', 'rgba(255,255,255,0.6)');
+                    }, 10000);
+                    break;
+                case 'extraTime':
+                    state.timeLeft += 5;
+                    updateTimer();
+                    break;
+                case 'magnet':
+                    // Магнит на 5 секунд
+                    if (gameTimers.powerup) clearTimeout(gameTimers.powerup);
+                    gameTimers.powerup = setTimeout(() => {
+                        state.activePowerups.magnet = false;
+                        showComboText('⏱️ Магнит закончился', 'rgba(255,255,255,0.6)');
+                    }, 5000);
+                    break;
+            }
+            
+            // Автоматически спавним бонус если магнит
+            if (type === 'magnet' && !state.bonusActive) {
+                spawnBonus();
+                setTimeout(() => {
+                    if (!state.bonusActive) spawnBonus();
+                }, 2000);
             }
         }
         
         // ==================== РЕКЛАМА ====================
-        function showBannerAd() {
-            const banner = document.getElementById('adBanner');
-            banner.classList.remove('hidden');
-            adStats.impressions++;
-            saveAdStats();
-        }
+        let adStats = {
+            impressions: parseInt(localStorage.getItem('adImpressions') || '0'),
+            clicks: parseInt(localStorage.getItem('adClicks') || '0'),
+            revenue: parseFloat(localStorage.getItem('adRevenue') || '0')
+        };
         
         function showInterstitialAd() {
             adStats.impressions++;
             saveAdStats();
-            console.log('Показ межстраничной рекламы');
+            console.log('📢 Показ рекламы');
         }
         
         function clickAd() {
             adStats.clicks++;
             adStats.revenue += 0.30;
             saveAdStats();
-            alert('Спасибо за интерес! Это демонстрация рекламы.');
+            alert('📢 Спасибо за поддержку!');
         }
         
         function watchAdForBonus() {
@@ -853,16 +1823,20 @@
             adStats.revenue += 0.05;
             saveAdStats();
             
-            alert('🎁 +10 очков за просмотр рекламы!');
+            state.score += 10;
+            state.coins += 10;
+            localStorage.setItem('coins', state.coins);
+            updateUI();
+            playSound('bonus');
+            
             startGame();
         }
         
         function removeAds() {
-            if (confirm('Убрать рекламу за 99₽?')) {
-                adStats.isAdFree = true;
+            if (confirm('💎 Убрать рекламу за 99₽?')) {
                 localStorage.setItem('isAdFree', 'true');
-                document.getElementById('adBanner').classList.add('hidden');
-                alert('✅ Premium активирована!');
+                $('adBanner').classList.remove('active');
+                alert('✅ Реклама отключена!');
             }
         }
         
@@ -872,29 +1846,87 @@
             localStorage.setItem('adRevenue', adStats.revenue);
         }
         
+        function saveGameStats() {
+            const stats = {
+                gamesPlayed: state.gamesPlayed,
+                totalScore: state.totalScore,
+                lastPlayed: new Date().toISOString()
+            };
+            localStorage.setItem('gameStats', JSON.stringify(stats));
+        }
+        
+        // ==================== SHARING ====================
+        function shareGame() {
+            const text = `🎮 Играю в "Поймай звезду"! Мой рекорд: ${getBestScore()} очков! Попробуй и ты!`;
+            const url = window.location.href;
+            
+            if (navigator.share) {
+                navigator.share({ title: 'Поймай звезду', text: text, url: url }).catch(() => {});
+            } else if (navigator.clipboard) {
+                navigator.clipboard.writeText(text + ' ' + url)
+                    .then(() => alert('✅ Ссылка скопирована!'))
+                    .catch(() => alert(text));
+            } else {
+                alert(text + ' ' + url);
+            }
+        }
+        
         // ==================== ИНИЦИАЛИЗАЦИЯ ====================
         window.addEventListener('load', () => {
-            if (adStats.isAdFree) {
-                document.getElementById('adBanner').classList.add('hidden');
+            // Telegram
+            if (window.Telegram?.WebApp) {
+                const tg = window.Telegram.WebApp;
+                tg.expand();
+                tg.ready();
+                if (tg.colorScheme === 'dark') {
+                    document.documentElement.style.setProperty('--bg-start', '#0a0a1a');
+                }
             }
             
-            if (!adStats.isAdFree) {
-                setTimeout(showBannerAd, 1000);
+            // Фон
+            initBackground();
+            
+            // Звук
+            setTimeout(() => {
+                initBackgroundMusic();
+                if (state.soundOn && !localStorage.getItem('soundOff')) {
+                    // Небольшая задержка для первого запуска
+                }
+            }, 1000);
+            
+            // Реклама
+            if (localStorage.getItem('isAdFree')) {
+                $('adBanner').classList.remove('active');
             }
             
-            startGame();
+            // Сброс усилений при первом запуске
+            if (!localStorage.getItem('powerup_initialized')) {
+                ['shield', 'double', 'extraTime', 'magnet'].forEach(key => {
+                    localStorage.setItem('powerup_' + key, 'false');
+                });
+                localStorage.setItem('powerup_initialized', 'true');
+            }
+            
+            // Запуск
+            setTimeout(startGame, 300);
         });
         
+        // Предотвращение скролла
         document.addEventListener('touchmove', (e) => {
-            e.preventDefault();
+            if (e.target.closest('#gameArea')) e.preventDefault();
         }, { passive: false });
         
-        // Telegram init
-        const tg = window.Telegram?.WebApp;
-        if (tg) {
-            tg.expand();
-            tg.ready();
-        }
+        document.addEventListener('contextmenu', (e) => e.preventDefault());
+        
+        // Автопауза
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && !state.gameOver && !state.isPaused) {
+                togglePause();
+            }
+        });
+        
+        console.log('⭐️ Поймай звезду - Deluxe Edition v3.0');
+        console.log('🔥 Улучшенная графика, музыка, магазин и многое другое!');
     </script>
 </body>
 </html>
